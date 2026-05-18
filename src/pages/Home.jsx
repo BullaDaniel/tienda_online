@@ -1,7 +1,7 @@
 // @ts-ignore: allow importing untyped .jsx module
-import Navbar from "../componentes/Navbar.jsx";
-import Catalogo from "../componentes/Catalogo.js";
-import Carrusel from "../componentes/Carrusel.js";
+import Navbar from "../componentes/Navbar";
+import Catalogo from "../componentes/Catalogo";
+import Carrusel from "../componentes/Carrusel";
 const home = () => {
     return (
         <div>
