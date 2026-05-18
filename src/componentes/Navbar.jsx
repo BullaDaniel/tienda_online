@@ -6,7 +6,7 @@ const Navbar = () => {
 
       <div className="nav-izquierda">
 
-        <img src="public/iconos/logo.png" className="logo"  />
+        <img src="public/iconos/logo.png"  />
 
       </div>
 

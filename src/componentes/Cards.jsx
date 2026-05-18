@@ -1,13 +1,5 @@
 
-type productos = {
-    id:number,
-    nombre:string,
-    precio:number,
-    imagen:string
-}
-
-
-export const Cards = ({producto}:{producto: productos}) => {
+export const Cards = ({producto}) => {
 
     return(
         <div className="card">
@@ -16,6 +8,4 @@ export const Cards = ({producto}:{producto: productos}) => {
         <h4>${producto.precio}</h4>
         </div>
     )
-
-
 }
