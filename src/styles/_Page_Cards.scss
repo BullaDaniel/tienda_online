@@ -1,0 +1,41 @@
+.organizar_info{
+    display: grid;
+    grid-template-areas: "imagen info"
+                        "resenas info";
+ grid-template-areas:  1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+    height: 100vh;
+}
+    .imagen_tienda{
+        grid-area: imagen;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        img{
+            width:80%;
+            max-width: 500px;
+            height:40vw;
+            max-height:600px;
+            min-height:300px;
+            object-fit:cover;
+            border-radius:10px;
+            
+        }
+    }
+
+    .info_tienda{
+        grid-area: info;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow-y: auto;
+    }
+    .resenas_tienda{
+            grid-area: resenas;
+            display: flex;
+            gap: 10px;
+            overflow-y: auto;
+        }
+
+    
