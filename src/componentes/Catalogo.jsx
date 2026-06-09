@@ -1,4 +1,3 @@
-// src/componentes/Catalogo.jsx
 // ─────────────────────────────────────────────
 // Lee productos del contexto global → muestra
 // en tiempo real los productos que Admin suba.
