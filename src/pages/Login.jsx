@@ -1,18 +1,13 @@
 // src/pages/Login.jsx
-// ─────────────────────────────────────────────
-// Página de Login. Credenciales mock:
-//   admin@glosse.com / glosse123  → Admin
-//   user@glosse.com  / user123    → Usuario
-// Redirige automáticamente si ya hay sesión.
-// ─────────────────────────────────────────────
 import { useState } from "react";
 import { useNavigate, Navigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
-    const { usuario, login, error, setError } = useAuth();
+    const { usuario, login } = useAuth();
     const navigate = useNavigate();
     const [form, setForm] = useState({ email: "", password: "" });
+    const [error, setError] = useState("");
     const [cargando, setCargando] = useState(false);
     const [mostrarPass, setMostrarPass] = useState(false);
 
@@ -24,42 +19,47 @@ const Login = () => {
         setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
     };
 
-    const validar = () => {
-        if (!form.email.trim()) return "El email es requerido.";
-        if (!/\S+@\S+\.\S+/.test(form.email)) return "El email no es válido.";
-        if (!form.password.trim()) return "La contraseña es requerida.";
-        if (form.password.length < 6) return "La contraseña debe tener mínimo 6 caracteres.";
-        return null;
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const validacionError = validar();
-        if (validacionError) { setError(validacionError); return; }
+        if (!form.email.trim() || !form.password.trim()) {
+            setError("Completa todos los campos.");
+            return;
+        }
 
         setCargando(true);
-        await new Promise((r) => setTimeout(r, 600)); // simula latencia
-        const exito = login(form.email, form.password);
-        setCargando(false);
+        try {
+            const res = await fetch("http://localhost:3001/api/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: form.email, password: form.password }),
+            });
 
-        if (exito) {
-            // Redirige según rol
-            const u = { email: form.email };
-            navigate(form.email === "admin@glosse.com" ? "/admin" : "/");
+            const data = await res.json();
+
+            if (!res.ok) {
+                setError(data.error || "Email o contraseña incorrectos.");
+                return;
+            }
+
+            if (data.rol !== "admin") {
+                setError("No tienes permisos de administrador.");
+                return;
+            }
+
+            login(data);
+            navigate("/admin");
+        } catch {
+            setError("No se pudo conectar con el servidor.");
+        } finally {
+            setCargando(false);
         }
     };
 
     return (
         <div className="login-bg">
             <div className="login-card">
-                {/* Logo */}
                 <Link to="/" className="login-logo">Glossé</Link>
                 <p className="login-subtitulo">Bienvenida de nuevo ✨</p>
-
-                {/* Hint de credenciales para demo */}
-                <div className="login-hint">
-                    <strong>Demo:</strong> admin@glosse.com / glosse123
-                </div>
 
                 <form onSubmit={handleSubmit} className="login-form" noValidate>
                     {error && <div className="login-error">⚠️ {error}</div>}
@@ -110,7 +110,6 @@ const Login = () => {
                 <Link to="/" className="login-volver">← Volver a la tienda</Link>
             </div>
 
-            {/* Decoración de fondo */}
             <div className="login-deco login-deco-1">🌸</div>
             <div className="login-deco login-deco-2">🌸</div>
             <div className="login-deco login-deco-3">🌸</div>

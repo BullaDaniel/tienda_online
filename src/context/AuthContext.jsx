@@ -1,45 +1,38 @@
-// src/context/AuthContext.jsx
-// ─────────────────────────────────────────────
-// Contexto global de autenticación.
-// Provee: usuario actual, login y logout.
-// Mock hardcoded — reemplaza con tu API real.
-// ─────────────────────────────────────────────
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState } from 'react';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
-// Usuario admin de prueba (mock)
-const MOCK_USERS = [
-    { email: "admin@glosse.com", password: "glosse123", rol: "admin", nombre: "Admin Glossé" },
-    { email: "user@glosse.com",  password: "user123",   rol: "user",  nombre: "Usuario" },
-];
+export function AuthProvider({ children }) {
+  const [usuario, setUsuario] = useState(() => {
+    const token = localStorage.getItem('token');
+    const rol = localStorage.getItem('rol');
+    const nombre = localStorage.getItem('nombre');
+    if (token && rol) return { token, rol, nombre };
+    return null;
+  });
 
-export const AuthProvider = ({ children }) => {
-    const [usuario, setUsuario] = useState(null);
-    const [error, setError] = useState("");
+  const login = (datos) => {
+     console.log('AuthContext login llamado con:', datos);
+    localStorage.setItem('token', datos.token);
+    localStorage.setItem('rol', datos.rol);
+    localStorage.setItem('nombre', datos.nombre);
+    setUsuario({ token: datos.token, rol: datos.rol, nombre: datos.nombre });
+  };
 
-    const login = (email, password) => {
-        const encontrado = MOCK_USERS.find(
-            (u) => u.email === email && u.password === password
-        );
-        if (encontrado) {
-            setUsuario(encontrado);
-            setError("");
-            return true;
-        } else {
-            setError("Credenciales incorrectas. Verifica tu email y contraseña.");
-            return false;
-        }
-    };
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('rol');
+    localStorage.removeItem('nombre');
+    setUsuario(null);
+  };
 
-    const logout = () => setUsuario(null);
+  return (
+    <AuthContext.Provider value={{ usuario, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
 
-    return (
-        <AuthContext.Provider value={{ usuario, login, logout, error, setError }}>
-            {children}
-        </AuthContext.Provider>
-    );
-};
-
-// Hook de conveniencia
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  return useContext(AuthContext);
+}
