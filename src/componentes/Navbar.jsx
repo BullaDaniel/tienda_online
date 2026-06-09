@@ -57,12 +57,16 @@ const Navbar = ({ petalosActivos, setPetalosActivos }) => {
                 </div>
                 
                 <button
-                    className={`nav-icono ${!petalosActivos ? "nav-icono--apagado" : ""}`}
-                    title={petalosActivos ? "Quitar pétalos" : "Activar pétalos"}
+                    className={`nav-icono petalo-toggle ${petalosActivos ? "activo" : "inactivo"}`}
+                    title={petalosActivos ? "Desactivar pétalos" : "Activar pétalos"}
                     onClick={() => setPetalosActivos(p => !p)}
                 >
                     🌸
+                    <span className="toggle-track">
+                        <span className="toggle-thumb" />
+                    </span>
                 </button>
+                                
 
                 {/* Menú de cuenta */}
                 <div className="cuenta-wrapper">
