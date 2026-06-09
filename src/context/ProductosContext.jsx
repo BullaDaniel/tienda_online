@@ -1,41 +1,73 @@
 // src/context/ProductosContext.jsx
-// ─────────────────────────────────────────────
-// Contexto global de productos.
-// Permite que el Admin agregue productos y que
-// el Catálogo los refleje en tiempo real.
-// ─────────────────────────────────────────────
-import { createContext, useContext, useState } from "react";
-import { productosIniciales } from "../data/productos";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const ProductosContext = createContext(null);
 
 export const ProductosProvider = ({ children }) => {
-    const [productos, setProductos] = useState(productosIniciales);
+    const [productos, setProductos] = useState([]);
+    const [cargando, setCargando] = useState(true);
+    const [errorProductos, setErrorProductos] = useState(null);
 
-    // Simula envío a base de datos y actualiza el estado local
+    // Cargar productos desde el backend al montar
+    useEffect(() => {
+        fetch("http://localhost:3001/api/productos")
+            .then((res) => res.json())
+            .then((data) => {
+                setProductos(data);
+                setCargando(false);
+            })
+            .catch(() => {
+                setErrorProductos("No se pudieron cargar los productos.");
+                setCargando(false);
+            });
+    }, []);
+
     const agregarProducto = (nuevoProducto) => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                const productoConId = {
-                    ...nuevoProducto,
-                    id: Date.now(), // ID único temporal
-                    precio: Number(nuevoProducto.precio),
-                    precioOriginal: nuevoProducto.precioOriginal
-                        ? Number(nuevoProducto.precioOriginal)
-                        : null,
-                    tallas: nuevoProducto.tallas
-                        .split(",")
-                        .map((t) => t.trim().toUpperCase())
-                        .filter(Boolean),
-                };
-                setProductos((prev) => [productoConId, ...prev]);
-                resolve(productoConId);
-            }, 800); // simula latencia de red
-        });
+        return fetch("http://localhost:3001/api/productos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(nuevoProducto),
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                setProductos((prev) => [data, ...prev]);
+                return data;
+            });
+    };
+
+    const editarProducto = (id, datosActualizados) => {
+        return fetch(`http://localhost:3001/api/productos/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(datosActualizados),
+        })
+            .then((res) => res.json())
+            .then(() => {
+                setProductos((prev) =>
+                    prev.map((p) => (p.id === id ? { ...p, ...datosActualizados } : p))
+                );
+            });
+    };
+
+    const eliminarProducto = (id) => {
+        return fetch(`http://localhost:3001/api/productos/${id}`, {
+            method: "DELETE",
+        })
+            .then((res) => res.json())
+            .then(() => {
+                setProductos((prev) => prev.filter((p) => p.id !== id));
+            });
     };
 
     return (
-        <ProductosContext.Provider value={{ productos, agregarProducto }}>
+        <ProductosContext.Provider value={{
+            productos,
+            cargando,
+            errorProductos,
+            agregarProducto,
+            editarProducto,
+            eliminarProducto,
+        }}>
             {children}
         </ProductosContext.Provider>
     );
