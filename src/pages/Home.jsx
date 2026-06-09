@@ -1,8 +1,4 @@
-// src/pages/Home.jsx
-// ─────────────────────────────────────────────
-// Página principal. Combina todas las secciones
-// del Código A + el Carrusel del Código B.
-// ─────────────────────────────────────────────
+
 import { useState } from "react";  
 import Navbar      from "../componentes/Navbar";
 import Hero        from "../componentes/Hero";
@@ -21,7 +17,7 @@ const Home = () => {
             <Navbar petalosActivos={petalosActivos} setPetalosActivos={setPetalosActivos} />  {/* 👈 */}
             <Hero />
             <ValueProps />
-            <Carrusel petalosActivos={petalosActivos} />  {/* 👈 */}
+            <Carrusel petalosActivos={petalosActivos} />  
             <Colecciones />
             <Catalogo />
             <Testimonios />

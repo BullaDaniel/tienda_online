@@ -17,22 +17,22 @@ const Footer = () => {
                 <div className="footer-marca">
                     <span className="footer-logo">Glossé</span>
                     <p>
-                        Pijamas premium para mujeres que saben que el descanso
-                        también merece estilo. Crafteados con amor y algodón suave.
+                        Pijamas premium para todos y todas que saben que el descanso
+                        también merece estilo. Hechos con amor y algodón suave.
                     </p>
                     <div className="redes">
                         <h4> Contactanos </h4> 
                         <ul>
-                        <li><a href="#" title="Instagram">
+                        <li><a href="https://www.instagram.com/glossee.e" title="Instagram">
                             <img src="public/iconos/Instagram.png" alt="Instagram" style={{ width: "100%", height: "100%" }}></img></a></li>
                        
-                        <li><a href="#" title="TikTok">
+                        <li><a href="https://www.tiktok.com/@glosse.pijamas" title="TikTok">
                             <img src="public/iconos/Tiktok.png" alt="Tiktok" style={{ width: "100%", height: "100%" }}></img></a></li>
 
-                        <li><a href="#" title="Facebook">
+                        <li><a href="https://www.facebook.com/Glossé" title="Facebook">
                              <img src="public/iconos/Facebook.png" alt="Facebook" style={{ width: "100%", height: "100%" }}></img></a></li>
                         
-                        <li><a href="#" title="WhatsApp">
+                        <li><a href="https://wa.me/573148771653" title="WhatsApp">
                             <img src="public/iconos/whatsapp.png" alt="Whatsapp" style={{ width: "100%", height: "100%" }}></img></a></li>
                         </ul>
                         
@@ -40,7 +40,7 @@ const Footer = () => {
                 </div>
 
                 <div className="footer-col">
-                    <h4>Tienda</h4>
+                    <h4>Catalogo</h4>
                     <ul>
                         <li><a href="#">Nueva Colección</a></li>
                         <li><a href="#">Hot Sale</a></li>
@@ -54,11 +54,10 @@ const Footer = () => {
                 <div className="footer-col">
                     <h4>Ayuda</h4>
                     <ul>
-                        <li><a href="/ayuda">Guía de tallas</a></li>
+                        <li><a href="/ayuda?tab=tallas">Guía de tallas</a></li>
                         <li><a href="mailto:soporte@glosse.com">Reportar problemas</a></li>
-                        <li><a href="/ayuda">Uso del sitio</a></li>
-                        <li><a href="/ayuda">Cuidado de las prendas</a></li>
-                        <li><a href="/ayuda">Preguntas frecuentes</a></li>
+                        <li><a href="/ayuda?tab=cuidado">Cuidado de las prendas</a></li>
+                        <li><a href="/ayuda?tab=faq">Preguntas frecuentes</a></li>
 
                     </ul>
                 </div>

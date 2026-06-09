@@ -1,21 +1,21 @@
 // src/pages/Ayuda.jsx
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Navbar from "../componentes/Navbar";
 import Footer from "../componentes/Footer";
 
 const TALLAS = [
-    { talla: "XS", pecho: "78–83", cintura: "60–65", cadera: "85–90",  },
-    { talla: "S",  pecho: "84–89", cintura: "66–71", cadera: "91–96",  },
-    { talla: "M",  pecho: "90–95", cintura: "72–77", cadera: "97–102",  },
-    { talla: "L",  pecho: "96–101",cintura: "78–83", cadera: "103–108", },
-    { talla: "XL", pecho: "102–109",cintura:"84–91", cadera: "109–116", },
+    { talla: "XS", pecho: "78–83",   cintura: "60–65", cadera: "85–90"   },
+    { talla: "S",  pecho: "84–89",   cintura: "66–71", cadera: "91–96"   },
+    { talla: "M",  pecho: "90–95",   cintura: "72–77", cadera: "97–102"  },
+    { talla: "L",  pecho: "96–101",  cintura: "78–83", cadera: "103–108" },
+    { talla: "XL", pecho: "102–109", cintura: "84–91", cadera: "109–116" },
 ];
 
 const PASOS_MEDICION = [
-    { icono: "📏", titulo: "Pecho", desc: "Mide alrededor de la parte más ancha del pecho, manteniendo la cinta paralela al suelo." },
+    { icono: "📏", titulo: "Pecho",   desc: "Mide alrededor de la parte más ancha del pecho, manteniendo la cinta paralela al suelo." },
     { icono: "⭕", titulo: "Cintura", desc: "Mide en tu punto más estrecho, generalmente 2–3 cm por encima del ombligo." },
-    { icono: "🔵", titulo: "Cadera", desc: "Mide alrededor de la parte más ancha de tus caderas y glúteos." },
+    { icono: "🔵", titulo: "Cadera",  desc: "Mide alrededor de la parte más ancha de tus caderas y glúteos." },
 ];
 
 const CUIDADOS = [
@@ -41,30 +41,37 @@ const FAQS = [
     {
         categoria: "Tallas y medidas",
         preguntas: [
-            { q: "¿Las tallas son estándar colombianas?", a: "Sí. Nuestras tallas siguen el estándar colombiano. Te recomendamos revisar nuestra guía de tallas con medidas en centímetros para mayor precisión." },
-            { q: "Si estoy entre dos tallas, ¿cuál elijo?", a: "Siempre recomendamos elegir la talla más grande para mayor comodidad, especialmente en pijamas y loungewear." },
-            { q: "¿Tienen tallas plus o grandes?", a: "Actualmente manejamos hasta talla XL. Estamos trabajando para incorporar tallas plus (XXL, XXXL) en nuestra próxima colección." },
+            { q: "¿Las tallas son estándar colombianas?",      a: "Sí. Nuestras tallas siguen el estándar colombiano. Te recomendamos revisar nuestra guía de tallas con medidas en centímetros para mayor precisión." },
+            { q: "Si estoy entre dos tallas, ¿cuál elijo?",    a: "Siempre recomendamos elegir la talla más grande para mayor comodidad, especialmente en pijamas y loungewear." },
+            { q: "¿Tienen tallas plus o grandes?",             a: "Actualmente manejamos hasta talla XL. Estamos trabajando para incorporar tallas plus (XXL, XXXL) en nuestra próxima colección." },
         ],
     },
     {
         categoria: "Productos",
         preguntas: [
-            { q: "¿Las fotos muestran el color real?", a: "Hacemos todo lo posible para que las fotos representen el color real. Sin embargo, puede haber pequeñas variaciones según la calibración de tu pantalla." },
-            { q: "¿Con qué materiales están confeccionadas las prendas?", a: "Trabajamos principalmente con satín, algodón 100% premium y polar. Cada producto indica su material en la descripción." },
-            { q: "¿Cómo sé qué colección es la más reciente?", a: "Las prendas nuevas aparecen con la etiqueta 'Nuevo' en el catálogo. También puedes seguirnos en redes sociales para ver los lanzamientos primero." },
+            { q: "¿Las fotos muestran el color real?",                  a: "Hacemos todo lo posible para que las fotos representen el color real. Sin embargo, puede haber pequeñas variaciones según la calibración de tu pantalla." },
+            { q: "¿Con qué materiales están confeccionadas las prendas?",a: "Trabajamos principalmente con satín, algodón 100% premium y polar. Cada producto indica su material en la descripción." },
+            { q: "¿Cómo sé qué colección es la más reciente?",          a: "Las prendas nuevas aparecen con la etiqueta 'Nuevo' en el catálogo. También puedes seguirnos en redes sociales para ver los lanzamientos primero." },
         ],
     },
     {
         categoria: "Cuidado de prendas",
         preguntas: [
             { q: "¿Puedo lavar mis pijamas de satín en lavadora?", a: "Sí, pero siempre en ciclo muy delicado con agua fría. Lo ideal es lavarlas a mano para preservar el brillo y la suavidad del tejido." },
-            { q: "¿Por qué no debo usar secadora?", a: "El calor de la secadora daña las fibras delicadas del satín y el algodón premium, reduciendo su vida útil y suavidad." },
-            { q: "¿Cada cuánto debo lavar las prendas?", a: "Para pijamas de uso regular, recomendamos lavar cada 2–3 usos. Para loungewear de uso diurno, según el nivel de actividad." },
+            { q: "¿Por qué no debo usar secadora?",                a: "El calor de la secadora daña las fibras delicadas del satín y el algodón premium, reduciendo su vida útil y suavidad." },
+            { q: "¿Cada cuánto debo lavar las prendas?",           a: "Para pijamas de uso regular, recomendamos lavar cada 2–3 usos. Para loungewear de uso diurno, según el nivel de actividad." },
         ],
     },
 ];
 
-// ── Tabs ───────────────────────────────────────
+const TABS = [
+    { id: "tallas",   label: "📏 Guía de tallas"       },
+    { id: "cuidado",  label: "✨ Cuidado de prendas"    },
+    { id: "faq",      label: "❓ Preguntas frecuentes"  },
+    { id: "nosotros", label: "🌸 Sobre nosotros"        },
+];
+
+// ── Tabs ───────────────────────────────────────────────────────────────────────
 
 const TabGuiaTallas = () => (
     <div className="ayuda-seccion">
@@ -175,7 +182,7 @@ const TabFAQ = () => {
                 <h3>¿Todavía tienes dudas?</h3>
                 <p>Escríbenos y te respondemos lo antes posible.</p>
                 <div className="faq-contacto-botones">
-                    <a href="https://wa.me/573000000000" className="btn-principal" target="_blank" rel="noreferrer">💬 WhatsApp</a>
+                    <a href="https://wa.me/573148771653" className="btn-principal" target="_blank" rel="noreferrer">💬 WhatsApp</a>
                     <a href="mailto:ayuda@glosse.com" className="btn-secundario">✉️ Email</a>
                 </div>
             </div>
@@ -183,16 +190,68 @@ const TabFAQ = () => {
     );
 };
 
-// ── Página ─────────────────────────────────────
+const TabNosotros = () => (
+    <div className="ayuda-seccion">
+        <div className="ayuda-intro">
+            <span className="ayuda-tag">🌸 Nuestra historia</span>
+            <h2>Sobre Glossé</h2>
+            <p>Somos un catálogo digital colombiano creado para mujeres que quieren sentirse cómodas, bonitas y auténticas, desde casa hasta donde quieran llegar.</p>
+        </div>
+        <div className="nosotros-grid">
+            <div className="nosotros-card">
+                <span className="nosotros-icono">💡</span>
+                <h3>Nuestra idea</h3>
+                <p>Glossé nació de la idea simple de que la ropa de dormir y el loungewear también merecen ser lindos. Prendas que te hagan sentir bien incluso en los momentos más cotidianos.</p>
+            </div>
+            <div className="nosotros-card">
+                <span className="nosotros-icono">🇨🇴</span>
+                <h3>Hecho en Colombia</h3>
+                <p>Somos 100% colombianos. Nuestras prendas se confeccionan localmente con materiales cuidadosamente seleccionados: satín, algodón premium y polar de calidad.</p>
+            </div>
+            <div className="nosotros-card">
+                <span className="nosotros-icono">🎀</span>
+                <h3>Para todas</h3>
+                <p>Diseñamos pensando en la comodidad real. Tallas XS a XL y próximamente plus, porque creemos que cada mujer merece encontrar su talla y sentirse increíble.</p>
+            </div>
+            <div className="nosotros-card">
+                <span className="nosotros-icono">💬</span>
+                <h3>Atención cercana</h3>
+                <p>No somos una tienda fría. Cada pedido pasa por nosotras directamente. Escríbenos por WhatsApp y te acompañamos en todo el proceso de compra.</p>
+            </div>
+        </div>
+        <div className="nosotros-valores">
+            <div className="ayuda-subtitulo"><h3>Lo que nos define</h3></div>
+            <div className="valores-lista">
+                {[
+                    { icono: "✨", valor: "Calidad real",    desc: "Materiales que se sienten desde el primer uso." },
+                    { icono: "🌿", valor: "Honestidad",      desc: "Las fotos y descripciones representan el producto real." },
+                    { icono: "💗", valor: "Cercanía",        desc: "Trato humano, sin bots ni respuestas automáticas." },
+                    { icono: "🔄", valor: "Mejora continua", desc: "Escuchamos a nuestras clientas para crecer juntas." },
+                ].map((v) => (
+                    <div className="valor-item" key={v.valor}>
+                        <span className="valor-icono">{v.icono}</span>
+                        <div>
+                            <strong>{v.valor}</strong>
+                            <p>{v.desc}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+        <div className="nosotros-cta">
+            <h3>¿Lista para conocer el catálogo?</h3>
+            <p>Explora nuestras colecciones y encuentra tu próxima prenda favorita.</p>
+            <Link to="/" className="btn-principal">🛍️ Ver catálogo</Link>
+        </div>
+    </div>
+);
 
-const TABS = [
-    { id: "tallas",  label: "📏 Guía de tallas" },
-    { id: "cuidado", label: "✨ Cuidado de prendas" },
-    { id: "faq",     label: "❓ Preguntas frecuentes" },
-];
+// ── Página ─────────────────────────────────────────────────────────────────────
 
 const Ayuda = () => {
-    const [tabActivo, setTabActivo] = useState("tallas");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const tabActivo = searchParams.get("tab") || "tallas";
+    const cambiarTab = (id) => setSearchParams({ tab: id });
 
     return (
         <div>
@@ -210,7 +269,7 @@ const Ayuda = () => {
                         <button
                             key={tab.id}
                             className={`ayuda-tab ${tabActivo === tab.id ? "ayuda-tab--activo" : ""}`}
-                            onClick={() => setTabActivo(tab.id)}
+                            onClick={() => cambiarTab(tab.id)}
                         >
                             {tab.label}
                         </button>
@@ -218,9 +277,10 @@ const Ayuda = () => {
                 </div>
             </div>
             <div className="ayuda-contenido">
-                {tabActivo === "tallas"  && <TabGuiaTallas />}
-                {tabActivo === "cuidado" && <TabCuidado />}
-                {tabActivo === "faq"     && <TabFAQ />}
+                {tabActivo === "tallas"   && <TabGuiaTallas />}
+                {tabActivo === "cuidado"  && <TabCuidado />}
+                {tabActivo === "faq"      && <TabFAQ />}
+                {tabActivo === "nosotros" && <TabNosotros />}
             </div>
             <Footer />
         </div>
