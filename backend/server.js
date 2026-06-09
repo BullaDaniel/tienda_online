@@ -56,10 +56,25 @@ app.get('/api/productos/:id', (req, res) => {
       DB.query('SELECT id, color, talla, stock FROM variantes WHERE producto_id = ?', [productoId], (errVar, variantes) => {
         if (errVar) return res.status(500).json({ error: errVar.message });
 
-        res.json({
-          ...producto,
-          imagenes: imagenes.map(i => i.ruta_imagen),
-          variantes,
+        const queryRelacionados = `
+          SELECT p.id, p.nombre, p.precio,
+                 MIN(i.ruta_imagen) AS imagen
+          FROM relacionados r
+          JOIN productos p ON r.producto_relacionado_id = p.id
+          LEFT JOIN imagenes_producto i ON p.id = i.producto_id
+          WHERE r.producto_id = ?
+          GROUP BY p.id
+        `;
+
+        DB.query(queryRelacionados, [productoId], (errRel, relacionados) => {
+          if (errRel) return res.status(500).json({ error: errRel.message });
+
+          res.json({
+            ...producto,
+            imagenes: imagenes.map(i => i.ruta_imagen),
+            variantes,
+            relacionados,
+          });
         });
       });
     });
@@ -156,6 +171,50 @@ app.post('/api/login', async (req, res) => {
     const token = jwt.sign({ id: usuario.id, rol: usuario.rol }, SECRET_KEY, { expiresIn: '8h' });
     res.json({ token, rol: usuario.rol, nombre: usuario.nombre });
   });
+});
+
+// ── RELACIONADOS ───────────────────────────────────
+
+// Obtener relacionados de un producto
+app.get('/api/productos/:id/relacionados', (req, res) => {
+  const query = `
+    SELECT p.id, p.nombre, p.precio,
+           MIN(i.ruta_imagen) AS imagen
+    FROM relacionados r
+    JOIN productos p ON r.producto_relacionado_id = p.id
+    LEFT JOIN imagenes_producto i ON p.id = i.producto_id
+    WHERE r.producto_id = ?
+    GROUP BY p.id
+  `;
+  DB.query(query, [req.params.id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+// Agregar un relacionado
+app.post('/api/productos/:id/relacionados', (req, res) => {
+  const { producto_relacionado_id } = req.body;
+  DB.query(
+    'INSERT INTO relacionados (producto_id, producto_relacionado_id) VALUES (?, ?)',
+    [req.params.id, producto_relacionado_id],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(201).json({ mensaje: 'Relacionado agregado' });
+    }
+  );
+});
+
+// Eliminar un relacionado
+app.delete('/api/productos/:id/relacionados/:relacionadoId', (req, res) => {
+  DB.query(
+    'DELETE FROM relacionados WHERE producto_id = ? AND producto_relacionado_id = ?',
+    [req.params.id, req.params.relacionadoId],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ mensaje: 'Relacionado eliminado' });
+    }
+  );
 });
 
 // ── SERVIDOR ───────────────────────────────────────
