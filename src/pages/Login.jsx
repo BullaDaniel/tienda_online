@@ -3,7 +3,6 @@
 // Página de Login. Credenciales mock:
 //   admin@glosse.com / glosse123  → Admin
 //   user@glosse.com  / user123    → Usuario
-// Redirige automáticamente si ya hay sesión.
 // ─────────────────────────────────────────────
 import { useState } from "react";
 import { useNavigate, Navigate, Link } from "react-router-dom";

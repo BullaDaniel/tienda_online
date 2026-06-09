@@ -11,7 +11,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Navbar = ({ petalosActivos, setPetalosActivos }) => {
-    const [carritoCount] = useState(2);
+    
     const [menuAbierto, setMenuAbierto] = useState(false);
     const [cuentaAbierta, setCuentaAbierta] = useState(false);
     const { usuario, logout } = useAuth();

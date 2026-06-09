@@ -1,4 +1,4 @@
-@use "sass:color";
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
 
 // ── Variables ───────────────────────────────────
 $rosa:      #FF7EB3;
@@ -93,15 +93,24 @@ a { text-decoration: none; color: inherit; }
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2.5rem;
-    background: linear-gradient(135deg, #4A1525, #7B2D50);
+    padding: 0 5%;
+    height: 72px;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,126,179,0.15);
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: 0 2px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 20px rgba(255,126,179,0.08);
 
     .nav-izquierda {
-        a { display: flex; align-items: center; gap: 0.5rem; }
+        a { display: flex;
+            align-items: center;
+            gap: 0.5rem;
+           
+            
+        }
         .logo { width: 110px; height: auto; }
         .logo-texto {
             color: $rosa;
@@ -114,22 +123,29 @@ a { text-decoration: none; color: inherit; }
     .nav-centro {
         display: flex;
         gap: 2rem;
+        align-items: center;
+
         a {
-            color: rgba(255,255,255,0.88);
             font-size: 0.9rem;
             font-weight: 500;
-            transition: color 0.2s;
-            &:hover { color: $rosa; }
-        }
-        &.abierto {
-            display: flex;
-            flex-direction: column;
-            position: absolute;
-            top: 100%;
-            left: 0; right: 0;
-            background: #4A1525;
-            padding: 1.5rem;
-            gap: 1.25rem;
+            color: $ciruelo;
+            position: relative;
+            padding-bottom: 4px;
+
+            &::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 0;
+                height: 2px;
+                background: $rosa-principal;
+                border-radius: 2px;
+                transition: $transicion;
+            }
+
+            &:hover::after { width: 100%; }
+            &:hover { color: $rosa-principal; }
         }
     }
 
@@ -137,7 +153,7 @@ a { text-decoration: none; color: inherit; }
         display: flex;
         align-items: center;
         gap: 0.75rem;
-    }
+        }
 
     .buscador-wrapper {
         display: flex;
@@ -617,95 +633,51 @@ a { text-decoration: none; color: inherit; }
 // COLECCIONES
 // ══════════════════════════════════════════════════
 .colecciones {
-    padding: 5rem 8%;
-    background: $gris;
-
+    padding: 2rem 5%;
     .colecciones-grid {
         display: grid;
-        grid-template-columns: 1.2fr 1fr 1fr;
-        grid-template-rows: auto auto;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 1.25rem;
     }
-
     .coleccion-card {
-        position: relative;
         border-radius: 16px;
         overflow: hidden;
+        position: relative;
+        aspect-ratio: 3/4;
         cursor: pointer;
+        &:hover .coleccion-overlay { opacity: 1; }
+        &:hover .coleccion-img { transform: scale(1.06); }
+    }
+    .coleccion-img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s;
         background: linear-gradient(135deg, #FFE3EC, #E8DEF8);
-
-        // La primera card ocupa las dos filas → la grande
-        &:first-child {
-            grid-row: span 2;
-            min-height: 520px;
-        }
-
-        .coleccion-img {
-            width: 100%;
-            height: 100%;
-            min-height: 240px;
-            object-fit: cover;
-            transition: transform 0.6s ease;
-        }
-
-        .coleccion-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(74,21,37,0.75) 0%, transparent 55%);
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 1.75rem;
-            transition: background 0.3s;
-
-            h3 {
-                color: $blanco;
-                font-size: 1.35rem;
-                margin-bottom: 0.3rem;
-            }
-
-            span {
-                color: rgba(255,255,255,0.75);
-                font-size: 0.82rem;
-                margin-bottom: 0.75rem;
-                display: block;
-            }
-
-            .coleccion-btn {
-                display: inline-flex;
-                align-items: center;
-                gap: 0.4rem;
-                background: $blanco;
-                color: $bordo;
-                padding: 0.5rem 1.1rem;
-                border-radius: 50px;
-                font-size: 0.82rem;
-                font-weight: 600;
-                width: fit-content;
-                // aparece en hover
-                opacity: 0;
-                transform: translateY(6px);
-                transition: opacity 0.3s, transform 0.3s;
-            }
-        }
-
-        &:hover {
-            .coleccion-img { transform: scale(1.06); }
-            .coleccion-overlay { background: linear-gradient(to top, rgba(74,21,37,0.88) 0%, transparent 65%); }
-            .coleccion-btn { opacity: 1; transform: translateY(0); }
-        }
     }
-
-    @media (max-width: 900px) {
-        padding: 3rem 5%;
-        .colecciones-grid {
-            grid-template-columns: 1fr 1fr;
-            .coleccion-card:first-child { grid-row: span 1; min-height: 200px; }
+    .coleccion-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(74,21,37,0.85) 0%, transparent 60%);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 1.5rem;
+        opacity: 0.7;
+        transition: opacity 0.3s;
+        color: $blanco;
+        h3 { font-size: 1.2rem; margin-bottom: 0.25rem; }
+        span { font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.75rem; display: block; }
+        .coleccion-btn {
+            align-self: flex-start;
+            background: $rosa;
+            color: $blanco;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: background 0.2s;
+            &:hover { background: $rosa-osc; }
         }
-    }
-
-    @media (max-width: 600px) {
-        .colecciones-grid { grid-template-columns: 1fr; }
     }
 }
 
