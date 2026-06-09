@@ -51,26 +51,29 @@ const Admin = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        const err = validar();
-        if (Object.keys(err).length) { setErrores(err); return; }
+    e.preventDefault();
+    const err = validar();
+    if (Object.keys(err).length) { setErrores(err); return; }
 
-        setCargando(true);
-        setExito("");
-        try {
-            const nuevo = await agregarProducto({
-                ...form,
-                etiqueta: form.etiqueta || null,
-            });
-            setForm(camposVacios);
-            setExito(`✅ "${nuevo.nombre}" añadido al catálogo con éxito.`);
-            setTimeout(() => setExito(""), 4000);
-        } catch {
-            setErrores({ general: "Error al guardar. Intenta de nuevo." });
-        } finally {
-            setCargando(false);
-        }
-    };
+    setCargando(true);
+    setExito("");
+    try {
+        const nuevo = await agregarProducto({
+            nombre: form.nombre,
+            descripcion: form.descripcion,
+            precio: Number(form.precio),
+            imagen: form.imagen,
+            tallas: form.tallas,
+        });
+        setForm(camposVacios);
+        setExito(`✅ "${nuevo.nombre}" añadido al catálogo con éxito.`);
+        setTimeout(() => setExito(""), 4000);
+    } catch {
+        setErrores({ general: "Error al guardar. Intenta de nuevo." });
+    } finally {
+        setCargando(false);
+    }
+};
 
     return (
         <div className="admin-bg">
@@ -174,7 +177,7 @@ const Admin = () => {
                                     <span>
                                         {p.precio.toLocaleString("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 })}
                                     </span>
-                                    <small>{p.tallas?.join(", ")}</small>
+                                    <small>{Array.isArray(p.tallas) ? p.tallas.join(", ") : p.tallas}</small>
                                 </div>
                                 {p.etiqueta && (
                                     <span className={`card-etiqueta ${p.etiqueta === "Hot Sale" ? "hot-sale" : p.etiqueta === "Descuento" ? "descuento" : "nuevo"}`}>
