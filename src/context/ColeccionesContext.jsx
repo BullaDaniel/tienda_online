@@ -1,8 +1,4 @@
-// src/context/ColeccionesContext.jsx
-// ─────────────────────────────────────────────
-// Estado global de Colecciones.
-// Maneja el CRUD completo de colecciones y sus
-// cards internas contra el backend.
+
 // ─────────────────────────────────────────────
 import { createContext, useContext, useState, useEffect } from "react";
 

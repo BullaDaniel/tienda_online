@@ -573,23 +573,32 @@ a {
     margin-left: -300%;
   }
 }
+
+/* ── COLECCIONES — scroll horizontal editorial ── */
 .colecciones {
-  padding: 2rem 5%;
+  padding: 2rem 0 2.5rem;
 }
 .colecciones .colecciones-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.25rem;
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: 0.25rem 5% 1rem;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.colecciones .colecciones-grid::-webkit-scrollbar {
+  display: none;
 }
 .colecciones .coleccion-card {
-  border-radius: 16px;
+  flex: 0 0 200px;
+  aspect-ratio: 2/3;
+  border-radius: 20px;
   overflow: hidden;
   position: relative;
-  aspect-ratio: 3/4;
   cursor: pointer;
-}
-.colecciones .coleccion-card:hover .coleccion-overlay {
-  opacity: 1;
+  scroll-snap-align: start;
+  background: linear-gradient(135deg, #FFE3EC, #C9A8B8);
 }
 .colecciones .coleccion-card:hover .coleccion-img {
   transform: scale(1.06);
@@ -599,43 +608,62 @@ a {
   height: 100%;
   -o-object-fit: cover;
      object-fit: cover;
-  transition: transform 0.4s;
-  background: linear-gradient(135deg, #FFE3EC, #E8DEF8);
+  transition: transform 0.4s ease;
+  background: linear-gradient(135deg, #FFE3EC, #C9A8B8);
+}
+.colecciones .coleccion-arrow {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-size: 0.85rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.colecciones .coleccion-card:hover .coleccion-arrow {
+  opacity: 1;
 }
 .colecciones .coleccion-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(74, 21, 37, 0.85) 0%, transparent 60%);
+  background: linear-gradient(to top, rgba(74, 21, 37, 0.88) 0%, transparent 55%);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 1.5rem;
-  opacity: 0.7;
-  transition: opacity 0.3s;
+  padding: 1.25rem 1rem 1rem;
   color: #FFFFFF;
 }
 .colecciones .coleccion-overlay h3 {
-  font-size: 1.2rem;
-  margin-bottom: 0.25rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.2;
+  margin-bottom: 0.2rem;
 }
 .colecciones .coleccion-overlay span {
-  font-size: 0.8rem;
-  opacity: 0.8;
-  margin-bottom: 0.75rem;
+  font-size: 0.72rem;
+  opacity: 0.75;
+  letter-spacing: 0.4px;
   display: block;
 }
-.colecciones .coleccion-overlay .coleccion-btn {
-  align-self: flex-start;
-  background: #FF7EB3;
-  color: #FFFFFF;
-  padding: 0.4rem 1rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  transition: background 0.2s;
+@media (max-width: 900px) {
+  .colecciones {
+    padding: 2rem 0;
+  }
 }
-.colecciones .coleccion-overlay .coleccion-btn:hover {
-  background: #E05A8A;
+@media (max-width: 600px) {
+  .colecciones .coleccion-card {
+    flex: 0 0 160px;
+  }
 }
 
 .catalogo-seccion {
@@ -757,7 +785,7 @@ a {
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
-  line-clamp: 2; /* 👈 esto quita el warning */
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
