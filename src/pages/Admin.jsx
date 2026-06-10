@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useProductos } from "../context/ProductosContext";
-import AdminColecciones from "./admin/AdminColecciones";
+import AdminColecciones from "./Admin/AdminColecciones";
 import SubirImagen from "../componentes/SubirImagen";
 
 const ETIQUETAS = ["", "Nuevo", "Hot Sale", "Descuento"];
