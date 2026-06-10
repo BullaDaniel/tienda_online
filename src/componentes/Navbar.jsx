@@ -1,14 +1,14 @@
-
-// ─────────────────────────────────────────────
+// src/componentes/Navbar.jsx
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { usePetalos } from "../context/PetalosContext";
 
-const Navbar = ({ petalosActivos, setPetalosActivos }) => {
-    
-    const [menuAbierto, setMenuAbierto] = useState(false);
+const Navbar = () => {
+    const [menuAbierto, setMenuAbierto]     = useState(false);
     const [cuentaAbierta, setCuentaAbierta] = useState(false);
-    const { usuario, logout } = useAuth();
+    const { usuario, logout }               = useAuth();
+    const { petalosActivos, togglePetalos } = usePetalos();
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -37,7 +37,7 @@ const Navbar = ({ petalosActivos, setPetalosActivos }) => {
             <nav className={`nav-centro ${menuAbierto ? "abierto" : ""}`}>
                 <a href="/#colecciones" onClick={() => setMenuAbierto(false)}>Colecciones</a>
                 <a href="/#catalogo"    onClick={() => setMenuAbierto(false)}>Hot Sale</a>
-                <a href="/ayuda?tab=nosotros"    onClick={() => setMenuAbierto(false)}>Sobre Nosotros</a>
+                <a href="/ayuda?tab=nosotros" onClick={() => setMenuAbierto(false)}>Sobre Nosotros</a>
             </nav>
 
             <div className="nav-derecha">
@@ -49,20 +49,18 @@ const Navbar = ({ petalosActivos, setPetalosActivos }) => {
                         className="buscador"
                     />
                 </div>
-                
+
                 <button
                     className={`nav-icono petalo-toggle ${petalosActivos ? "activo" : "inactivo"}`}
                     title={petalosActivos ? "Desactivar pétalos" : "Activar pétalos"}
-                    onClick={() => setPetalosActivos(p => !p)}
+                    onClick={togglePetalos}
                 >
                     🌸
                     <span className="toggle-track">
                         <span className="toggle-thumb" />
                     </span>
                 </button>
-                                
 
-                {/* Menú de cuenta */}
                 <div className="cuenta-wrapper">
                     <button
                         className="nav-icono"
@@ -103,7 +101,6 @@ const Navbar = ({ petalosActivos, setPetalosActivos }) => {
                         </div>
                     )}
                 </div>
-
             </div>
 
             <button
@@ -111,9 +108,7 @@ const Navbar = ({ petalosActivos, setPetalosActivos }) => {
                 aria-label="Menú"
                 onClick={() => setMenuAbierto((p) => !p)}
             >
-                <span />
-                <span />
-                <span />
+                <span /><span /><span />
             </button>
         </header>
     );
