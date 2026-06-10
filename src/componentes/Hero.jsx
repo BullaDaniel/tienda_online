@@ -28,7 +28,7 @@ const Hero = () => (
             <div className="decoracion-circulo">🌸</div>
             <div className="hero-img-wrapper">
                 <img
-                    src="/imagenes/imagenprincipal.jpg"
+                    src="/imagenes/principal.png"
                     alt="Pijamas Glosse"
                     onError={(e) => {
                         e.target.parentElement.style.background =
