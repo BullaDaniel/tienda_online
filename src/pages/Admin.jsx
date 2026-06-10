@@ -1,12 +1,4 @@
 // src/pages/Admin.jsx
-// ─────────────────────────────────────────────
-// Panel de administración (RUTA PROTEGIDA).
-// Permite subir nuevos productos al catálogo
-// en tiempo real mediante mock de API.
-// Campos: Nombre, Descripción, Precio,
-//         Precio Original, Imagen (URL),
-//         Tallas (separadas por coma), Etiqueta.
-// ─────────────────────────────────────────────
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -26,11 +18,19 @@ const camposVacios = {
 
 const Admin = () => {
     const { usuario, logout } = useAuth();
-    const { productos, agregarProducto } = useProductos();
+    const { productos, agregarProducto, editarProducto, eliminarProducto } = useProductos();
+
     const [form, setForm] = useState(camposVacios);
     const [errores, setErrores] = useState({});
     const [cargando, setCargando] = useState(false);
     const [exito, setExito] = useState("");
+    const [modoEdicion, setModoEdicion] = useState(null); // id del producto en edición
+
+    // Estado para el panel de relacionados
+    const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+    const [relacionados, setRelacionados] = useState([]);
+    const [cargandoRel, setCargandoRel] = useState(false);
+    const [relacionadoId, setRelacionadoId] = useState("");
 
     const handleChange = (e) => {
         setErrores((p) => ({ ...p, [e.target.name]: "" }));
@@ -39,45 +39,132 @@ const Admin = () => {
 
     const validar = () => {
         const e = {};
-        if (!form.nombre.trim())       e.nombre       = "El nombre es requerido.";
-        if (!form.descripcion.trim())  e.descripcion  = "La descripción es requerida.";
+        if (!form.nombre.trim())      e.nombre      = "El nombre es requerido.";
+        if (!form.descripcion.trim()) e.descripcion = "La descripción es requerida.";
         if (!form.precio || isNaN(Number(form.precio)) || Number(form.precio) <= 0)
-                                        e.precio       = "Ingresa un precio válido mayor a 0.";
-        if (form.precioOriginal && (isNaN(Number(form.precioOriginal)) || Number(form.precioOriginal) <= 0))
-                                        e.precioOriginal = "El precio original debe ser un número válido.";
-        if (!form.imagen.trim())       e.imagen       = "La URL de imagen es requerida.";
-        if (!form.tallas.trim())       e.tallas       = "Ingresa al menos una talla (ej: S, M, L).";
+                                      e.precio      = "Ingresa un precio válido mayor a 0.";
+        if (!form.imagen.trim())      e.imagen      = "La URL de imagen es requerida.";
+        if (!modoEdicion && !form.tallas.trim()) e.tallas = "Ingresa al menos una talla (ej: S, M, L).";
         return e;
     };
 
-    const handleSubmit = async (e) => {
-    e.preventDefault();
-    const err = validar();
-    if (Object.keys(err).length) { setErrores(err); return; }
-
-    setCargando(true);
-    setExito("");
-    try {
-        const nuevo = await agregarProducto({
-            nombre: form.nombre,
-            descripcion: form.descripcion,
-            precio: Number(form.precio),
-            imagen: form.imagen,
-            tallas: form.tallas,
+    // Entrar en modo edición
+    const iniciarEdicion = (p) => {
+        setModoEdicion(p.id);
+        setForm({
+            nombre:        p.nombre        || "",
+            descripcion:   p.descripcion   || "",
+            precio:        p.precio        || "",
+            precioOriginal:p.precioOriginal || "",
+            imagen:        p.imagen        || "",
+            tallas:        Array.isArray(p.tallas) ? p.tallas.join(", ") : (p.tallas || ""),
+            etiqueta:      p.etiqueta      || "",
         });
+        setErrores({});
+        setExito("");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    // Cancelar edición
+    const cancelarEdicion = () => {
+        setModoEdicion(null);
         setForm(camposVacios);
-        setExito(`✅ "${nuevo.nombre}" añadido al catálogo con éxito.`);
-        setTimeout(() => setExito(""), 4000);
-    } catch {
-        setErrores({ general: "Error al guardar. Intenta de nuevo." });
-    } finally {
-        setCargando(false);
-    }
-};
+        setErrores({});
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const err = validar();
+        if (Object.keys(err).length) { setErrores(err); return; }
+
+        setCargando(true);
+        setExito("");
+        try {
+            if (modoEdicion) {
+                // Modo edición
+                await editarProducto(modoEdicion, {
+                    nombre:      form.nombre,
+                    descripcion: form.descripcion,
+                    precio:      Number(form.precio),
+                    imagen:      form.imagen,
+                });
+                setExito(`✅ "${form.nombre}" actualizado con éxito.`);
+                setModoEdicion(null);
+            } else {
+                // Modo creación
+                const nuevo = await agregarProducto({
+                    nombre:      form.nombre,
+                    descripcion: form.descripcion,
+                    precio:      Number(form.precio),
+                    imagen:      form.imagen,
+                    tallas:      form.tallas,
+                });
+                setExito(`✅ "${nuevo.nombre}" añadido al catálogo con éxito.`);
+            }
+            setForm(camposVacios);
+            setTimeout(() => setExito(""), 4000);
+        } catch {
+            setErrores({ general: "Error al guardar. Intenta de nuevo." });
+        } finally {
+            setCargando(false);
+        }
+    };
+
+    const handleEliminar = async (p) => {
+        if (!window.confirm(`¿Eliminar "${p.nombre}"? Esta acción no se puede deshacer.`)) return;
+        try {
+            await eliminarProducto(p.id);
+            setExito(`🗑️ "${p.nombre}" eliminado del catálogo.`);
+            setTimeout(() => setExito(""), 3000);
+            if (modoEdicion === p.id) cancelarEdicion();
+        } catch {
+            alert("Error al eliminar el producto.");
+        }
+    };
+
+    // Relacionados
+    const abrirRelacionados = async (producto) => {
+        setProductoSeleccionado(producto);
+        setCargandoRel(true);
+        try {
+            const res = await fetch(`http://localhost:3001/api/productos/${producto.id}/relacionados`);
+            const data = await res.json();
+            setRelacionados(data);
+        } catch {
+            setRelacionados([]);
+        } finally {
+            setCargandoRel(false);
+        }
+    };
+
+    const agregarRelacionado = async () => {
+        if (!relacionadoId || relacionadoId == productoSeleccionado.id) return;
+        try {
+            await fetch(`http://localhost:3001/api/productos/${productoSeleccionado.id}/relacionados`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ producto_relacionado_id: Number(relacionadoId) }),
+            });
+            setRelacionadoId("");
+            abrirRelacionados(productoSeleccionado);
+        } catch {
+            alert("Error al agregar relacionado.");
+        }
+    };
+
+    const eliminarRelacionado = async (relId) => {
+        try {
+            await fetch(`http://localhost:3001/api/productos/${productoSeleccionado.id}/relacionados/${relId}`, {
+                method: "DELETE",
+            });
+            abrirRelacionados(productoSeleccionado);
+        } catch {
+            alert("Error al eliminar relacionado.");
+        }
+    };
 
     return (
         <div className="admin-bg">
-            {/* Header */}
             <header className="admin-header">
                 <Link to="/" className="admin-logo">Glossé</Link>
                 <div className="admin-header-right">
@@ -90,14 +177,17 @@ const Admin = () => {
             <div className="admin-contenido">
                 {/* Panel izquierdo: formulario */}
                 <section className="admin-form-panel">
-                    <h1 className="admin-titulo">🛠 Panel de Administración</h1>
-                    <p className="admin-subtitulo">Agrega nuevos productos al catálogo en tiempo real.</p>
+                    <h1 className="admin-titulo">
+                        {modoEdicion ? "✏️ Editar producto" : "🛠 Panel de Administración"}
+                    </h1>
+                    <p className="admin-subtitulo">
+                        {modoEdicion ? "Modifica los datos del producto y guarda los cambios." : "Agrega nuevos productos al catálogo en tiempo real."}
+                    </p>
 
                     {exito && <div className="admin-exito">{exito}</div>}
                     {errores.general && <div className="admin-error-general">{errores.general}</div>}
 
                     <form onSubmit={handleSubmit} className="admin-form" noValidate>
-                        {/* Nombre */}
                         <div className="admin-campo">
                             <label>Nombre del producto *</label>
                             <input name="nombre" value={form.nombre} onChange={handleChange}
@@ -105,7 +195,6 @@ const Admin = () => {
                             {errores.nombre && <span className="admin-campo-error">{errores.nombre}</span>}
                         </div>
 
-                        {/* Descripción */}
                         <div className="admin-campo">
                             <label>Descripción *</label>
                             <textarea name="descripcion" value={form.descripcion} onChange={handleChange}
@@ -113,7 +202,6 @@ const Admin = () => {
                             {errores.descripcion && <span className="admin-campo-error">{errores.descripcion}</span>}
                         </div>
 
-                        {/* Precios */}
                         <div className="admin-fila">
                             <div className="admin-campo">
                                 <label>Precio COP *</label>
@@ -125,11 +213,9 @@ const Admin = () => {
                                 <label>Precio Original (opcional)</label>
                                 <input name="precioOriginal" type="number" value={form.precioOriginal} onChange={handleChange}
                                     placeholder="119900" min="0" disabled={cargando} />
-                                {errores.precioOriginal && <span className="admin-campo-error">{errores.precioOriginal}</span>}
                             </div>
                         </div>
 
-                        {/* Imagen */}
                         <div className="admin-campo">
                             <label>URL de imagen *</label>
                             <input name="imagen" value={form.imagen} onChange={handleChange}
@@ -137,15 +223,16 @@ const Admin = () => {
                             {errores.imagen && <span className="admin-campo-error">{errores.imagen}</span>}
                         </div>
 
-                        {/* Tallas */}
-                        <div className="admin-campo">
-                            <label>Tallas * <small>(separadas por coma)</small></label>
-                            <input name="tallas" value={form.tallas} onChange={handleChange}
-                                placeholder="XS, S, M, L, XL" disabled={cargando} />
-                            {errores.tallas && <span className="admin-campo-error">{errores.tallas}</span>}
-                        </div>
+                        {/* Tallas solo al crear — las variantes se manejan por separado al editar */}
+                        {!modoEdicion && (
+                            <div className="admin-campo">
+                                <label>Tallas * <small>(separadas por coma)</small></label>
+                                <input name="tallas" value={form.tallas} onChange={handleChange}
+                                    placeholder="XS, S, M, L, XL" disabled={cargando} />
+                                {errores.tallas && <span className="admin-campo-error">{errores.tallas}</span>}
+                            </div>
+                        )}
 
-                        {/* Etiqueta */}
                         <div className="admin-campo">
                             <label>Etiqueta</label>
                             <select name="etiqueta" value={form.etiqueta} onChange={handleChange} disabled={cargando}>
@@ -155,9 +242,21 @@ const Admin = () => {
                             </select>
                         </div>
 
-                        <button type="submit" className="admin-btn-submit" disabled={cargando}>
-                            {cargando ? "⏳ Guardando..." : "➕ Agregar producto al catálogo"}
-                        </button>
+                        <div className="admin-fila">
+                            <button type="submit" className="admin-btn-submit" disabled={cargando}>
+                                {cargando ? "⏳ Guardando..." : modoEdicion ? "💾 Guardar cambios" : "➕ Agregar producto"}
+                            </button>
+                            {modoEdicion && (
+                                <button
+                                    type="button"
+                                    className="admin-btn-cancelar"
+                                    onClick={cancelarEdicion}
+                                    disabled={cargando}
+                                >
+                                    Cancelar
+                                </button>
+                            )}
+                        </div>
                     </form>
                 </section>
 
@@ -166,7 +265,7 @@ const Admin = () => {
                     <h2>Productos en catálogo <span className="admin-badge">{productos.length}</span></h2>
                     <div className="admin-lista">
                         {productos.map((p) => (
-                            <div key={p.id} className="admin-item">
+                            <div key={p.id} className={`admin-item ${modoEdicion === p.id ? "admin-item--activo" : ""}`}>
                                 <img
                                     src={p.imagen}
                                     alt={p.nombre}
@@ -174,21 +273,69 @@ const Admin = () => {
                                 />
                                 <div className="admin-item-info">
                                     <strong>{p.nombre}</strong>
-                                    <span>
-                                        {p.precio.toLocaleString("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 })}
-                                    </span>
+                                    <span>{Number(p.precio).toLocaleString("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 })}</span>
                                     <small>{Array.isArray(p.tallas) ? p.tallas.join(", ") : p.tallas}</small>
                                 </div>
-                                {p.etiqueta && (
-                                    <span className={`card-etiqueta ${p.etiqueta === "Hot Sale" ? "hot-sale" : p.etiqueta === "Descuento" ? "descuento" : "nuevo"}`}>
-                                        {p.etiqueta}
-                                    </span>
-                                )}
+                                <div className="admin-item-acciones">
+                                    <button
+                                        className="admin-btn-relacionados"
+                                        onClick={() => abrirRelacionados(p)}
+                                        title="Gestionar relacionados"
+                                    >🔗</button>
+                                    <button
+                                        className="admin-btn-editar"
+                                        onClick={() => iniciarEdicion(p)}
+                                        title="Editar producto"
+                                    >✏️</button>
+                                    <button
+                                        className="admin-btn-eliminar"
+                                        onClick={() => handleEliminar(p)}
+                                        title="Eliminar producto"
+                                    >🗑️</button>
+                                </div>
                             </div>
                         ))}
                     </div>
                 </section>
             </div>
+
+            {/* Modal de relacionados */}
+            {productoSeleccionado && (
+                <div className="admin-modal-overlay" onClick={() => setProductoSeleccionado(null)}>
+                    <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+                        <h3>Relacionados de "{productoSeleccionado.nombre}"</h3>
+                        <div className="admin-rel-agregar">
+                            <select value={relacionadoId} onChange={(e) => setRelacionadoId(e.target.value)}>
+                                <option value="">Selecciona un producto...</option>
+                                {productos
+                                    .filter(p => p.id !== productoSeleccionado.id)
+                                    .map(p => (
+                                        <option key={p.id} value={p.id}>{p.nombre}</option>
+                                    ))
+                                }
+                            </select>
+                            <button onClick={agregarRelacionado} disabled={!relacionadoId}>Agregar</button>
+                        </div>
+                        {cargandoRel ? (
+                            <p>Cargando...</p>
+                        ) : relacionados.length === 0 ? (
+                            <p className="admin-rel-vacio">Sin productos relacionados aún.</p>
+                        ) : (
+                            <div className="admin-rel-lista">
+                                {relacionados.map((r) => (
+                                    <div key={r.id} className="admin-rel-item">
+                                        <img src={r.imagen} alt={r.nombre}
+                                            onError={(e) => { e.target.style.background = "#FFE3EC"; e.target.src = ""; }} />
+                                        <span>{r.nombre}</span>
+                                        <button onClick={() => eliminarRelacionado(r.id)}>✕</button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        <button className="admin-modal-cerrar" onClick={() => setProductoSeleccionado(null)}>Cerrar</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
