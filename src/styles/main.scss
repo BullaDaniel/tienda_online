@@ -454,9 +454,36 @@ a { text-decoration: none; color: inherit; }
     }
 
     .card-info {
+<<<<<<< HEAD
+        padding: 1rem 1.1rem 1.1rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+
+        h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: $bordo;
+            line-height: 1.3;
+        }
+
+        .card-descripcion {
+            font-size: 0.82rem;
+            color: #888;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+=======
         padding: 1rem 1.1rem 1.1rem; flex: 1; display: flex; flex-direction: column; gap: 0.5rem;
         h2 { font-size: 1rem; font-weight: 600; color: $bordo; line-height: 1.3; }
         .card-descripcion { font-size: 0.82rem; color: #888; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+>>>>>>> 3d0b08a9de3ab66f6759d96012295952281b13c6
         .card-tallas {
             display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: auto;
             span { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 1.5px solid rgba(74,21,37,0.2); border-radius: 6px; font-size: 0.7rem; font-weight: 600; color: $bordo; cursor: pointer; transition: all 0.2s; &:hover { border-color: $rosa; background: #fff0f6; color: $rosa; } &.talla-activa { background: $bordo; color: $blanco; border-color: $bordo; } }
