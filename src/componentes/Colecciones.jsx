@@ -40,6 +40,7 @@ const Colecciones = () => {
                             alt={col.titulo}
                             onError={(e) => { e.target.style.opacity = "0.3"; }}
                         />
+                        <div className="coleccion-arrow">→</div>
                         <div className="coleccion-overlay">
                             <h3>{col.titulo}</h3>
                             <span>
@@ -47,7 +48,6 @@ const Colecciones = () => {
                                     ? `${col.total_cards} ${col.total_cards === 1 ? "pieza" : "piezas"}`
                                     : col.descripcion || ""}
                             </span>
-                            <div className="coleccion-btn">Ver colección →</div>
                         </div>
                     </Link>
                 ))}

@@ -41,14 +41,6 @@ const Navbar = () => {
             </nav>
 
             <div className="nav-derecha">
-                <div className="buscador-wrapper">
-                    <span className="icono-buscar">🔍</span>
-                    <input
-                        type="text"
-                        placeholder="Buscar pijamas..."
-                        className="buscador"
-                    />
-                </div>
 
                 <button
                     className={`nav-icono petalo-toggle ${petalosActivos ? "activo" : "inactivo"}`}
