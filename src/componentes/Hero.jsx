@@ -19,9 +19,9 @@ const Hero = () => (
                 <a href="#colecciones" className="btn-secundario">Explorar</a>
             </div>
             <div className="hero-stats">
-                <div className="stat"><strong>+5K</strong><span>Clientes felices</span></div>
+                <div className="stat"><strong>+500</strong><span>Clientes felices</span></div>
                 <div className="stat"><strong>100%</strong><span>Algodón premium</span></div>
-                <div className="stat"><strong>4.9 ★</strong><span>Calificación</span></div>
+                <div className="stat"><strong>+40</strong><span>diseños únicos</span></div>
             </div>
         </div>
         <div className="hero-imagen">

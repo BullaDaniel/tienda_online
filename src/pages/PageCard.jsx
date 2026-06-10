@@ -1,6 +1,5 @@
-// src/pages/PageCard.jsx
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../componentes/Navbar";
 
@@ -23,11 +22,13 @@ const Estrellas = ({ valor, onClick }) => (
 const PageCard = () => {
     const { id } = useParams();
     const { usuario } = useAuth();
+    const navigate = useNavigate();
 
     const [producto, setProducto] = useState(null);
     const [cargando, setCargando] = useState(true);
     const [tallaActiva, setTallaActiva] = useState(null);
     const [agregado, setAgregado] = useState(false);
+    
 
     // Reseñas
     const [resenas, setResenas] = useState([]);
@@ -51,10 +52,6 @@ const PageCard = () => {
             .catch(() => setResenas([]));
     }, [id]);
 
-    const handleCarrito = () => {
-        setAgregado(true);
-        setTimeout(() => setAgregado(false), 1800);
-    };
 
     const handleEnviarResena = async (e) => {
         e.preventDefault();
@@ -178,10 +175,9 @@ const PageCard = () => {
                         </div>
                     )}
 
-                    <button className="btn-principal detalle-btn" onClick={handleCarrito}>
-                        {agregado ? "✓ ¡Añadido al carrito!" : "🛒 Añadir al carrito"}
-                    </button>
-                    <Link to="/" className="detalle-volver">← Seguir comprando</Link>
+                    <button className="detalle-volver" onClick={() => navigate("/")}>
+                    <span>← Volver al catálogo</span>
+                </button>
                 </div>
             </div>
 

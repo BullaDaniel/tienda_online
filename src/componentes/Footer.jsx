@@ -24,16 +24,16 @@ const Footer = () => {
                         <h4> Contactanos </h4> 
                         <ul>
                         <li><a href="https://www.instagram.com/glossee.e" title="Instagram">
-                            <img src="public/iconos/Instagram.png" alt="Instagram" style={{ width: "100%", height: "100%" }}></img></a></li>
+                            <img src="/iconos/Instagram.png" alt="Instagram" style={{ width: "100%", height: "100%" }}></img></a></li>
                        
                         <li><a href="https://www.tiktok.com/@glosse.pijamas" title="TikTok">
-                            <img src="public/iconos/Tiktok.png" alt="Tiktok" style={{ width: "100%", height: "100%" }}></img></a></li>
+                            <img src="/iconos/Tiktok.png" alt="Tiktok" style={{ width: "100%", height: "100%" }}></img></a></li>
 
                         <li><a href="https://www.facebook.com/Glossé" title="Facebook">
-                             <img src="public/iconos/Facebook.png" alt="Facebook" style={{ width: "100%", height: "100%" }}></img></a></li>
+                             <img src="/iconos/Facebook.png" alt="Facebook" style={{ width: "100%", height: "100%" }}></img></a></li>
                         
                         <li><a href="https://wa.me/573148771653" title="WhatsApp">
-                            <img src="public/iconos/whatsapp.png" alt="Whatsapp" style={{ width: "100%", height: "100%" }}></img></a></li>
+                            <img src="/iconos/whatsapp.png" alt="Whatsapp" style={{ width: "100%", height: "100%" }}></img></a></li>
                         </ul>
                         
                     </div>

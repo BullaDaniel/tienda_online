@@ -446,13 +446,12 @@ a { text-decoration: none; color: inherit; }
     .card-img { width: 100%; aspect-ratio: 3/4; overflow: hidden; background: linear-gradient(135deg, #FFE3EC, #E8DEF8); img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1); } }
 
     .card-acciones {
-        position: absolute; bottom: 9.5rem; left: 0; right: 0;
+        position: absolute; bottom: 6.5rem; left: 0; right: 0;
         display: flex; justify-content: center; padding: 0 1rem;
         opacity: 0; transform: translateY(8px);
         transition: opacity 0.3s, transform 0.3s; z-index: 3;
         .btn-carrito { width: 100%; padding: 0.7rem 1.25rem; background: $bordo; color: $blanco; border: none; border-radius: 50px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.2s; display: flex; align-items: center; justify-content: center; &:hover { background: $rosa; transform: scale(1.02); } }
-    }
-
+    }  
     .card-info {
         padding: 1rem 1.1rem 1.1rem;
         flex: 1;
@@ -486,6 +485,50 @@ a { text-decoration: none; color: inherit; }
 
     @media (max-width: 600px) {
         .card-acciones { opacity: 1; transform: translateY(0); position: static; padding: 0 1rem 0.5rem; }
+    }
+}
+.detalle-volver {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.75rem;
+    background: transparent;
+    border: 2px solid $bordo;
+    border-radius: 50px;
+    color: $bordo;
+    font-size: 0.88rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: color 0.3s ease;
+
+    // fondo que entra de derecha a izquierda en hover
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, $bordo, #7B2D50);
+        transform: translateX(101%);
+        transition: transform 0.3s ease;
+        z-index: 0;
+    }
+
+    span {
+        position: relative;
+        z-index: 1;
+    }
+
+    &:hover {
+        color: $blanco;
+        border-color: $bordo;
+        &::before { transform: translateX(0); }
+    }
+
+    &:active {
+        transform: scale(0.97);
     }
 }
 
@@ -543,16 +586,148 @@ a { text-decoration: none; color: inherit; }
 // PÁGINA DETALLE DE PRODUCTO
 // ══════════════════════════════════════════════════
 .organizar_info {
-    display: flex; flex-wrap: wrap; gap: 3rem; padding: 3rem 5%; min-height: 80vh; align-items: flex-start;
-    .imagen_tienda { flex: 1; min-width: 280px; max-width: 480px; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 40px rgba(74,21,37,0.15); aspect-ratio: 3/4; background: linear-gradient(135deg, #FFE3EC, #E8DEF8); img { width: 100%; height: 100%; object-fit: cover; } }
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4rem;
+    padding: 4rem 8%;
+    min-height: 80vh;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, #fff6f9 0%, #f5f3ff 100%);
+
+    .imagen_tienda {
+        flex: 1;
+        min-width: 280px;
+        max-width: 460px;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(74,21,37,0.15);
+        aspect-ratio: 3/4;
+        background: linear-gradient(135deg, #FFE3EC, #E8DEF8);
+        img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+    }
+
     .detalle-info {
-        flex: 1; min-width: 280px;
-        h1 { font-size: clamp(1.5rem, 3vw, 2.2rem); color: $bordo; margin: 0.75rem 0; }
-        .detalle-descripcion { color: #666; font-size: 1rem; line-height: 1.7; margin-bottom: 1.5rem; }
-        .detalle-precios { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; .precio-original { font-size: 1rem; color: #aaa; text-decoration: line-through; } .precio-actual { font-size: 1.6rem; font-weight: 700; color: $bordo; } }
-        .detalle-tallas { margin-bottom: 1.5rem; p { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; } }
-        .detalle-btn { width: 100%; max-width: 320px; margin-bottom: 1rem; text-align: center; }
-        .detalle-volver { display: block; color: $rosa; font-size: 0.9rem; font-weight: 500; &:hover { text-decoration: underline; } }
+        flex: 1;
+        min-width: 280px;
+        max-width: 500px;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+
+        h1 {
+            font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+            color: $bordo;
+            line-height: 1.2;
+            margin: 0;
+        }
+
+        .detalle-descripcion {
+            color: #777;
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .detalle-promedio {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .detalle-precios {
+            display: flex;
+            align-items: baseline;
+            gap: 0.75rem;
+            .precio-original {
+                font-size: 1rem;
+                color: #bbb;
+                text-decoration: line-through;
+            }
+            .precio-actual {
+                font-size: 2rem;
+                font-weight: 700;
+                color: $bordo;
+            }
+        }
+
+        .detalle-tallas {
+            p {
+                font-size: 0.85rem;
+                font-weight: 600;
+                color: #999;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                margin-bottom: 0.6rem;
+            }
+            .card-tallas {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                span {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-width: 44px;
+                    height: 44px;
+                    padding: 0 0.75rem;
+                    border: 2px solid #e5d5df;
+                    border-radius: 10px;
+                    font-size: 0.82rem;
+                    font-weight: 700;
+                    color: $bordo;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    background: $blanco;
+                    &:hover {
+                        border-color: $rosa;
+                        background: #fff0f6;
+                        color: $rosa;
+                    }
+                    &.talla-activa {
+                        background: $bordo;
+                        color: $blanco;
+                        border-color: $bordo;
+                        box-shadow: 0 4px 12px rgba(74,21,37,0.25);
+                    }
+                }
+            }
+        }
+
+        .detalle-volver {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: fit-content;
+            padding: 0.75rem 1.75rem;
+            background: transparent;
+            border: 2px solid $bordo;
+            border-radius: 50px;
+            color: $bordo;
+            font-size: 0.88rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease;
+            &:hover {
+                background: $bordo;
+                color: $blanco;
+                transform: translateX(-4px);
+            }
+            &:active { transform: scale(0.97); }
+        }
+    }
+
+    @media (max-width: 768px) {
+        padding: 2rem 5%;
+        gap: 2rem;
+        .imagen_tienda { max-width: 100%; }
+        .detalle-info { max-width: 100%; }
     }
 }
 
