@@ -8,6 +8,9 @@ import Admin from "./pages/Admin";
 import RutaProtegida from "./componentes/RutaProtegida";
 import Ayuda from "./pages/Ayuda";
 import Registro from "./pages/Registro";
+import ColeccionesIndex from "./pages/ColeccionesIndex";
+import ColeccionDetalle from "./pages/ColeccionDetalle";
+import AdminColecciones from "./pages/Admin/AdminColecciones";
 
 function App() {
     return (
@@ -18,6 +21,8 @@ function App() {
             <Route path="/producto/:id" element={<PageCard />} />
             <Route path="/login"        element={<Login />} />
             <Route path="/registro" element={<Registro />} />
+            <Route path="/colecciones"       element={<ColeccionesIndex />} />
+            <Route path="/colecciones/:slug" element={<ColeccionDetalle />} />  
             <Route
                 path="/admin"
                 element={

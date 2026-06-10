@@ -3,8 +3,12 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useProductos } from "../context/ProductosContext";
+import AdminColecciones from "./admin/AdminColecciones";
+import SubirImagen from "../componentes/SubirImagen";
 
 const ETIQUETAS = ["", "Nuevo", "Hot Sale", "Descuento"];
+
+
 
 const camposVacios = {
     nombre: "",
@@ -20,6 +24,7 @@ const Admin = () => {
     const { usuario, logout } = useAuth();
     const { productos, agregarProducto, editarProducto, eliminarProducto } = useProductos();
 
+    const [tabAdmin, setTabAdmin] = useState("productos"); // "productos" | "colecciones"
     const [form, setForm] = useState(camposVacios);
     const [errores, setErrores] = useState({});
     const [cargando, setCargando] = useState(false);
@@ -170,10 +175,25 @@ const Admin = () => {
                 <div className="admin-header-right">
                     <span className="admin-bienvenida">👋 {usuario?.nombre}</span>
                     <Link to="/" className="admin-link-tienda">Ver tienda</Link>
+                    <div className="admin-tabs">
+    <button
+        className={`admin-tab ${tabAdmin === "productos" ? "admin-tab--activo" : ""}`}
+        onClick={() => setTabAdmin("productos")}
+    >
+        📦 Productos
+    </button>
+    <button
+        className={`admin-tab ${tabAdmin === "colecciones" ? "admin-tab--activo" : ""}`}
+        onClick={() => setTabAdmin("colecciones")}
+    >
+        🗂️ Colecciones
+    </button>
+</div>
                     <button className="admin-logout" onClick={logout}>Salir</button>
                 </div>
             </header>
 
+        {tabAdmin === "productos" && (
             <div className="admin-contenido">
                 {/* Panel izquierdo: formulario */}
                 <section className="admin-form-panel">
@@ -216,12 +236,11 @@ const Admin = () => {
                             </div>
                         </div>
 
-                        <div className="admin-campo">
-                            <label>URL de imagen *</label>
-                            <input name="imagen" value={form.imagen} onChange={handleChange}
-                                placeholder="/imagenes/NuevoProducto.jpg" disabled={cargando} />
-                            {errores.imagen && <span className="admin-campo-error">{errores.imagen}</span>}
-                        </div>
+                        <SubirImagen
+                            value={form.imagen}
+                            onChange={(url) => setForm((p) => ({ ...p, imagen: url }))}
+                            label="Imagen del producto *"
+                        />
 
                         {/* Tallas solo al crear — las variantes se manejan por separado al editar */}
                         {!modoEdicion && (
@@ -298,7 +317,12 @@ const Admin = () => {
                     </div>
                 </section>
             </div>
-
+        )}
+    {tabAdmin === "colecciones" && (
+    <div className="admin-contenido" style={{ display: "block", padding: "1.5rem 3%" }}>
+        <AdminColecciones />
+    </div>
+)}
             {/* Modal de relacionados */}
             {productoSeleccionado && (
                 <div className="admin-modal-overlay" onClick={() => setProductoSeleccionado(null)}>

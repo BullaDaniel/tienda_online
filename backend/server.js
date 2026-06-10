@@ -4,9 +4,30 @@ const mysql   = require('mysql2');
 const cors    = require('cors');
 const bcrypt  = require('bcrypt');
 const jwt     = require('jsonwebtoken');
+const cloudinary = require('cloudinary').v2;
+const multer     = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
+// Configuración de Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key:    process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Storage: las imágenes van directo a Cloudinary
+const storage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+        folder:         'glosse',        // carpeta en tu Cloudinary
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+        transformation:  [{ width: 1200, quality: 'auto', fetch_format: 'auto' }],
+    },
+});
+
+const upload = multer({ storage });
 const app        = express();
-const port       = 3001;
+const port       = process.env.PORT || 3001;
 const SECRET_KEY = process.env.SECRET_KEY;
 
 app.use(cors());
@@ -320,6 +341,173 @@ app.delete('/api/resenas/:id', (req, res) => {
   });
 });
 
+// ── SUBIR IMAGEN ───────────────────────────────
+app.post('/api/upload', upload.single('imagen'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No se recibió ninguna imagen.' });
+    res.json({ url: req.file.path });
+});
+
+// ── COLECCIONES ────────────────────────────────────
+
+// Todas las colecciones (con conteo de cards)
+app.get('/api/colecciones', (req, res) => {
+  const query = `
+    SELECT c.id, c.titulo, c.slug, c.descripcion, c.imagen_portada,
+           COUNT(k.id) AS total_cards
+    FROM colecciones c
+    LEFT JOIN coleccion_cards k ON c.id = k.coleccion_id
+    GROUP BY c.id
+    ORDER BY c.creado_en DESC`;
+  DB.query(query, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+// Una colección por slug (para la página pública)
+app.get('/api/colecciones/slug/:slug', (req, res) => {
+  DB.query('SELECT * FROM colecciones WHERE slug = ?', [req.params.slug], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (rows.length === 0) return res.status(404).json({ error: 'Colección no encontrada' });
+    const col = rows[0];
+    DB.query('SELECT * FROM coleccion_cards WHERE coleccion_id = ? ORDER BY orden ASC, id ASC', [col.id], (err2, cards) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      res.json({ ...col, cards });
+    });
+  });
+});
+
+// Una colección por id
+app.get('/api/colecciones/:id', (req, res) => {
+  DB.query('SELECT * FROM colecciones WHERE id = ?', [req.params.id], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (rows.length === 0) return res.status(404).json({ error: 'Colección no encontrada' });
+    res.json(rows[0]);
+  });
+});
+
+// Crear colección
+app.post('/api/colecciones', (req, res) => {
+  const { titulo, slug, descripcion, imagen_portada } = req.body;
+  if (!titulo || !slug) return res.status(400).json({ error: 'titulo y slug son requeridos' });
+  DB.query(
+    'INSERT INTO colecciones (titulo, slug, descripcion, imagen_portada) VALUES (?, ?, ?, ?)',
+    [titulo, slug, descripcion || '', imagen_portada || ''],
+    (err, result) => {
+      if (err) {
+        if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: 'El slug ya existe' });
+        return res.status(500).json({ error: err.message });
+      }
+      res.status(201).json({ id: result.insertId, titulo, slug, descripcion, imagen_portada, total_cards: 0 });
+    }
+  );
+});
+
+// Editar colección
+app.put('/api/colecciones/:id', (req, res) => {
+  const { titulo, slug, descripcion, imagen_portada } = req.body;
+  DB.query(
+    'UPDATE colecciones SET titulo=?, slug=?, descripcion=?, imagen_portada=? WHERE id=?',
+    [titulo, slug, descripcion || '', imagen_portada || '', req.params.id],
+    (err) => {
+      if (err) {
+        if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: 'El slug ya existe' });
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ mensaje: 'Colección actualizada' });
+    }
+  );
+});
+
+// Eliminar colección (las cards se eliminan en cascada)
+app.delete('/api/colecciones/:id', (req, res) => {
+  DB.query('DELETE FROM colecciones WHERE id = ?', [req.params.id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ mensaje: 'Colección eliminada' });
+  });
+});
+
+// ── CARDS DE COLECCIÓN ──────────────────────────────
+
+// Obtener cards de una colección
+app.get('/api/colecciones/:id/cards', (req, res) => {
+  DB.query(
+    'SELECT * FROM coleccion_cards WHERE coleccion_id = ? ORDER BY orden ASC, id ASC',
+    [req.params.id],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(results);
+    }
+  );
+});
+
+// Crear card en una colección
+app.post('/api/colecciones/:id/cards', (req, res) => {
+  const { titulo, descripcion_corta, imagen, enlace, precio, fecha, tags, etiqueta } = req.body;
+  if (!titulo) return res.status(400).json({ error: 'titulo es requerido' });
+  DB.query(
+    `INSERT INTO coleccion_cards
+       (coleccion_id, titulo, descripcion_corta, imagen, enlace, precio, fecha, tags, etiqueta)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      req.params.id,
+      titulo,
+      descripcion_corta || '',
+      imagen || '',
+      enlace || '',
+      precio || null,
+      fecha || null,
+      tags || '',
+      etiqueta || '',
+    ],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(201).json({
+        id: result.insertId,
+        coleccion_id: Number(req.params.id),
+        titulo, descripcion_corta, imagen, enlace, precio, fecha, tags, etiqueta,
+      });
+    }
+  );
+});
+
+// Editar card
+app.put('/api/colecciones/:id/cards/:cardId', (req, res) => {
+  const { titulo, descripcion_corta, imagen, enlace, precio, fecha, tags, etiqueta } = req.body;
+  DB.query(
+    `UPDATE coleccion_cards
+     SET titulo=?, descripcion_corta=?, imagen=?, enlace=?, precio=?, fecha=?, tags=?, etiqueta=?
+     WHERE id=? AND coleccion_id=?`,
+    [
+      titulo,
+      descripcion_corta || '',
+      imagen || '',
+      enlace || '',
+      precio || null,
+      fecha || null,
+      tags || '',
+      etiqueta || '',
+      req.params.cardId,
+      req.params.id,
+    ],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ mensaje: 'Card actualizada' });
+    }
+  );
+});
+
+// Eliminar card
+app.delete('/api/colecciones/:id/cards/:cardId', (req, res) => {
+  DB.query(
+    'DELETE FROM coleccion_cards WHERE id = ? AND coleccion_id = ?',
+    [req.params.cardId, req.params.id],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ mensaje: 'Card eliminada' });
+    }
+  );
+});
 
 // ── SERVIDOR ───────────────────────────────────────
 
