@@ -4,7 +4,28 @@ const mysql   = require('mysql2');
 const cors    = require('cors');
 const bcrypt  = require('bcrypt');
 const jwt     = require('jsonwebtoken');
+const cloudinary = require('cloudinary').v2;
+const multer     = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
+// Configuración de Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key:    process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Storage: las imágenes van directo a Cloudinary
+const storage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+        folder:         'glosse',        // carpeta en tu Cloudinary
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+        transformation:  [{ width: 1200, quality: 'auto', fetch_format: 'auto' }],
+    },
+});
+
+const upload = multer({ storage });
 const app        = express();
 const port       = process.env.PORT || 3001;
 const SECRET_KEY = process.env.SECRET_KEY;
@@ -319,6 +340,11 @@ app.delete('/api/resenas/:id', (req, res) => {
   });
 });
 
+// ── SUBIR IMAGEN ───────────────────────────────
+app.post('/api/upload', upload.single('imagen'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No se recibió ninguna imagen.' });
+    res.json({ url: req.file.path });
+});
 
 // ── SERVIDOR ───────────────────────────────────────
 

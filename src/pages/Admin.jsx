@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useProductos } from "../context/ProductosContext";
 import AdminColecciones from "./admin/AdminColecciones";
+import SubirImagen from "../componentes/SubirImagen";
 
 const ETIQUETAS = ["", "Nuevo", "Hot Sale", "Descuento"];
 
@@ -235,12 +236,11 @@ const Admin = () => {
                             </div>
                         </div>
 
-                        <div className="admin-campo">
-                            <label>URL de imagen *</label>
-                            <input name="imagen" value={form.imagen} onChange={handleChange}
-                                placeholder="/imagenes/NuevoProducto.jpg" disabled={cargando} />
-                            {errores.imagen && <span className="admin-campo-error">{errores.imagen}</span>}
-                        </div>
+                        <SubirImagen
+                            value={form.imagen}
+                            onChange={(url) => setForm((p) => ({ ...p, imagen: url }))}
+                            label="Imagen del producto *"
+                        />
 
                         {/* Tallas solo al crear — las variantes se manejan por separado al editar */}
                         {!modoEdicion && (

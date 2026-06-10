@@ -1266,3 +1266,26 @@ a { text-decoration: none; color: inherit; }
      &:hover { color: $bordo; }
      &--activo { color: $bordo; border-bottom-color: $rosa; }
  }
+.subir-imagen-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.subir-imagen-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 1.25rem;
+    background: linear-gradient(135deg, rgba($rosa, 0.1), rgba($purp, 0.1));
+    border: 2px dashed rgba($rosa, 0.4);
+    border-radius: 10px;
+    color: $bordo;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    &:hover { border-color: $rosa; background: rgba($rosa, 0.15); }
+    &.subiendo { opacity: 0.6; cursor: not-allowed; }
+}
