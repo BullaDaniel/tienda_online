@@ -18,11 +18,13 @@ const camposVacios = {
 
 const Admin = () => {
     const { usuario, logout } = useAuth();
-    const { productos, agregarProducto } = useProductos();
+    const { productos, agregarProducto, editarProducto, eliminarProducto } = useProductos();
+
     const [form, setForm] = useState(camposVacios);
     const [errores, setErrores] = useState({});
     const [cargando, setCargando] = useState(false);
     const [exito, setExito] = useState("");
+    const [modoEdicion, setModoEdicion] = useState(null); // id del producto en edición
 
     // Estado para el panel de relacionados
     const [productoSeleccionado, setProductoSeleccionado] = useState(null);
@@ -42,8 +44,32 @@ const Admin = () => {
         if (!form.precio || isNaN(Number(form.precio)) || Number(form.precio) <= 0)
                                       e.precio      = "Ingresa un precio válido mayor a 0.";
         if (!form.imagen.trim())      e.imagen      = "La URL de imagen es requerida.";
-        if (!form.tallas.trim())      e.tallas      = "Ingresa al menos una talla (ej: S, M, L).";
+        if (!modoEdicion && !form.tallas.trim()) e.tallas = "Ingresa al menos una talla (ej: S, M, L).";
         return e;
+    };
+
+    // Entrar en modo edición
+    const iniciarEdicion = (p) => {
+        setModoEdicion(p.id);
+        setForm({
+            nombre:        p.nombre        || "",
+            descripcion:   p.descripcion   || "",
+            precio:        p.precio        || "",
+            precioOriginal:p.precioOriginal || "",
+            imagen:        p.imagen        || "",
+            tallas:        Array.isArray(p.tallas) ? p.tallas.join(", ") : (p.tallas || ""),
+            etiqueta:      p.etiqueta      || "",
+        });
+        setErrores({});
+        setExito("");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    // Cancelar edición
+    const cancelarEdicion = () => {
+        setModoEdicion(null);
+        setForm(camposVacios);
+        setErrores({});
     };
 
     const handleSubmit = async (e) => {
@@ -54,15 +80,28 @@ const Admin = () => {
         setCargando(true);
         setExito("");
         try {
-            const nuevo = await agregarProducto({
-                nombre: form.nombre,
-                descripcion: form.descripcion,
-                precio: Number(form.precio),
-                imagen: form.imagen,
-                tallas: form.tallas,
-            });
+            if (modoEdicion) {
+                // Modo edición
+                await editarProducto(modoEdicion, {
+                    nombre:      form.nombre,
+                    descripcion: form.descripcion,
+                    precio:      Number(form.precio),
+                    imagen:      form.imagen,
+                });
+                setExito(`✅ "${form.nombre}" actualizado con éxito.`);
+                setModoEdicion(null);
+            } else {
+                // Modo creación
+                const nuevo = await agregarProducto({
+                    nombre:      form.nombre,
+                    descripcion: form.descripcion,
+                    precio:      Number(form.precio),
+                    imagen:      form.imagen,
+                    tallas:      form.tallas,
+                });
+                setExito(`✅ "${nuevo.nombre}" añadido al catálogo con éxito.`);
+            }
             setForm(camposVacios);
-            setExito(`✅ "${nuevo.nombre}" añadido al catálogo con éxito.`);
             setTimeout(() => setExito(""), 4000);
         } catch {
             setErrores({ general: "Error al guardar. Intenta de nuevo." });
@@ -71,7 +110,19 @@ const Admin = () => {
         }
     };
 
-    // Abrir panel de relacionados de un producto
+    const handleEliminar = async (p) => {
+        if (!window.confirm(`¿Eliminar "${p.nombre}"? Esta acción no se puede deshacer.`)) return;
+        try {
+            await eliminarProducto(p.id);
+            setExito(`🗑️ "${p.nombre}" eliminado del catálogo.`);
+            setTimeout(() => setExito(""), 3000);
+            if (modoEdicion === p.id) cancelarEdicion();
+        } catch {
+            alert("Error al eliminar el producto.");
+        }
+    };
+
+    // Relacionados
     const abrirRelacionados = async (producto) => {
         setProductoSeleccionado(producto);
         setCargandoRel(true);
@@ -86,7 +137,6 @@ const Admin = () => {
         }
     };
 
-    // Agregar relacionado
     const agregarRelacionado = async () => {
         if (!relacionadoId || relacionadoId == productoSeleccionado.id) return;
         try {
@@ -102,10 +152,9 @@ const Admin = () => {
         }
     };
 
-    // Eliminar relacionado
-    const eliminarRelacionado = async (relacionadoId) => {
+    const eliminarRelacionado = async (relId) => {
         try {
-            await fetch(`http://localhost:3001/api/productos/${productoSeleccionado.id}/relacionados/${relacionadoId}`, {
+            await fetch(`http://localhost:3001/api/productos/${productoSeleccionado.id}/relacionados/${relId}`, {
                 method: "DELETE",
             });
             abrirRelacionados(productoSeleccionado);
@@ -116,7 +165,6 @@ const Admin = () => {
 
     return (
         <div className="admin-bg">
-            {/* Header */}
             <header className="admin-header">
                 <Link to="/" className="admin-logo">Glossé</Link>
                 <div className="admin-header-right">
@@ -129,8 +177,12 @@ const Admin = () => {
             <div className="admin-contenido">
                 {/* Panel izquierdo: formulario */}
                 <section className="admin-form-panel">
-                    <h1 className="admin-titulo">🛠 Panel de Administración</h1>
-                    <p className="admin-subtitulo">Agrega nuevos productos al catálogo en tiempo real.</p>
+                    <h1 className="admin-titulo">
+                        {modoEdicion ? "✏️ Editar producto" : "🛠 Panel de Administración"}
+                    </h1>
+                    <p className="admin-subtitulo">
+                        {modoEdicion ? "Modifica los datos del producto y guarda los cambios." : "Agrega nuevos productos al catálogo en tiempo real."}
+                    </p>
 
                     {exito && <div className="admin-exito">{exito}</div>}
                     {errores.general && <div className="admin-error-general">{errores.general}</div>}
@@ -171,12 +223,15 @@ const Admin = () => {
                             {errores.imagen && <span className="admin-campo-error">{errores.imagen}</span>}
                         </div>
 
-                        <div className="admin-campo">
-                            <label>Tallas * <small>(separadas por coma)</small></label>
-                            <input name="tallas" value={form.tallas} onChange={handleChange}
-                                placeholder="XS, S, M, L, XL" disabled={cargando} />
-                            {errores.tallas && <span className="admin-campo-error">{errores.tallas}</span>}
-                        </div>
+                        {/* Tallas solo al crear — las variantes se manejan por separado al editar */}
+                        {!modoEdicion && (
+                            <div className="admin-campo">
+                                <label>Tallas * <small>(separadas por coma)</small></label>
+                                <input name="tallas" value={form.tallas} onChange={handleChange}
+                                    placeholder="XS, S, M, L, XL" disabled={cargando} />
+                                {errores.tallas && <span className="admin-campo-error">{errores.tallas}</span>}
+                            </div>
+                        )}
 
                         <div className="admin-campo">
                             <label>Etiqueta</label>
@@ -187,9 +242,21 @@ const Admin = () => {
                             </select>
                         </div>
 
-                        <button type="submit" className="admin-btn-submit" disabled={cargando}>
-                            {cargando ? "⏳ Guardando..." : "➕ Agregar producto al catálogo"}
-                        </button>
+                        <div className="admin-fila">
+                            <button type="submit" className="admin-btn-submit" disabled={cargando}>
+                                {cargando ? "⏳ Guardando..." : modoEdicion ? "💾 Guardar cambios" : "➕ Agregar producto"}
+                            </button>
+                            {modoEdicion && (
+                                <button
+                                    type="button"
+                                    className="admin-btn-cancelar"
+                                    onClick={cancelarEdicion}
+                                    disabled={cargando}
+                                >
+                                    Cancelar
+                                </button>
+                            )}
+                        </div>
                     </form>
                 </section>
 
@@ -198,7 +265,7 @@ const Admin = () => {
                     <h2>Productos en catálogo <span className="admin-badge">{productos.length}</span></h2>
                     <div className="admin-lista">
                         {productos.map((p) => (
-                            <div key={p.id} className="admin-item">
+                            <div key={p.id} className={`admin-item ${modoEdicion === p.id ? "admin-item--activo" : ""}`}>
                                 <img
                                     src={p.imagen}
                                     alt={p.nombre}
@@ -206,18 +273,26 @@ const Admin = () => {
                                 />
                                 <div className="admin-item-info">
                                     <strong>{p.nombre}</strong>
-                                    <span>
-                                        {Number(p.precio).toLocaleString("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 })}
-                                    </span>
+                                    <span>{Number(p.precio).toLocaleString("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 })}</span>
                                     <small>{Array.isArray(p.tallas) ? p.tallas.join(", ") : p.tallas}</small>
                                 </div>
-                                <button
-                                    className="admin-btn-relacionados"
-                                    onClick={() => abrirRelacionados(p)}
-                                    title="Gestionar productos relacionados"
-                                >
-                                    🔗
-                                </button>
+                                <div className="admin-item-acciones">
+                                    <button
+                                        className="admin-btn-relacionados"
+                                        onClick={() => abrirRelacionados(p)}
+                                        title="Gestionar relacionados"
+                                    >🔗</button>
+                                    <button
+                                        className="admin-btn-editar"
+                                        onClick={() => iniciarEdicion(p)}
+                                        title="Editar producto"
+                                    >✏️</button>
+                                    <button
+                                        className="admin-btn-eliminar"
+                                        onClick={() => handleEliminar(p)}
+                                        title="Eliminar producto"
+                                    >🗑️</button>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -229,13 +304,8 @@ const Admin = () => {
                 <div className="admin-modal-overlay" onClick={() => setProductoSeleccionado(null)}>
                     <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
                         <h3>Relacionados de "{productoSeleccionado.nombre}"</h3>
-
-                        {/* Agregar relacionado */}
                         <div className="admin-rel-agregar">
-                            <select
-                                value={relacionadoId}
-                                onChange={(e) => setRelacionadoId(e.target.value)}
-                            >
+                            <select value={relacionadoId} onChange={(e) => setRelacionadoId(e.target.value)}>
                                 <option value="">Selecciona un producto...</option>
                                 {productos
                                     .filter(p => p.id !== productoSeleccionado.id)
@@ -244,12 +314,8 @@ const Admin = () => {
                                     ))
                                 }
                             </select>
-                            <button onClick={agregarRelacionado} disabled={!relacionadoId}>
-                                Agregar
-                            </button>
+                            <button onClick={agregarRelacionado} disabled={!relacionadoId}>Agregar</button>
                         </div>
-
-                        {/* Lista de relacionados actuales */}
                         {cargandoRel ? (
                             <p>Cargando...</p>
                         ) : relacionados.length === 0 ? (
@@ -266,10 +332,7 @@ const Admin = () => {
                                 ))}
                             </div>
                         )}
-
-                        <button className="admin-modal-cerrar" onClick={() => setProductoSeleccionado(null)}>
-                            Cerrar
-                        </button>
+                        <button className="admin-modal-cerrar" onClick={() => setProductoSeleccionado(null)}>Cerrar</button>
                     </div>
                 </div>
             )}

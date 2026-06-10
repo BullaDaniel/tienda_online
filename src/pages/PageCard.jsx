@@ -1,30 +1,47 @@
 // src/pages/PageCard.jsx
-// ─────────────────────────────────────────────
-// Página de detalle de producto (del Código B).
-// Mejorada con: tallas, descripción, carrito,
-// precio formateado y manejo de producto 404.
-// ─────────────────────────────────────────────
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useProductos } from "../context/ProductosContext";
 import Navbar from "../componentes/Navbar";
 
 const formatPrecio = (precio) =>
-    precio.toLocaleString("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 });
+    Number(precio).toLocaleString("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 });
 
 const PageCard = () => {
     const { id } = useParams();
-    const { productos } = useProductos();
-    const producto = productos.find((item) => item.id == id);
+    const [producto, setProducto] = useState(null);
+    const [cargando, setCargando] = useState(true);
     const [tallaActiva, setTallaActiva] = useState(null);
     const [agregado, setAgregado] = useState(false);
+
+    useEffect(() => {
+        setCargando(true);
+        setTallaActiva(null);
+        fetch(`http://localhost:3001/api/productos/${id}`)
+            .then((res) => res.json())
+            .then((data) => {
+                setProducto(data);
+                setCargando(false);
+            })
+            .catch(() => setCargando(false));
+    }, [id]);
 
     const handleCarrito = () => {
         setAgregado(true);
         setTimeout(() => setAgregado(false), 1800);
     };
 
-    if (!producto) {
+    if (cargando) {
+        return (
+            <>
+                <Navbar />
+                <div className="page-card-error">
+                    <p>Cargando producto...</p>
+                </div>
+            </>
+        );
+    }
+
+    if (!producto || producto.error) {
         return (
             <>
                 <Navbar />
@@ -36,12 +53,19 @@ const PageCard = () => {
         );
     }
 
+    const imagenPrincipal = producto.imagenes?.[0] || producto.imagen || "";
+    const tallas = producto.variantes
+        ? [...new Set(producto.variantes.map((v) => v.talla).filter(Boolean))]
+        : [];
+
     return (
         <>
             <Navbar />
+
+            {/* Detalle principal */}
             <div className="organizar_info">
                 <section className="imagen_tienda">
-                    <img src={producto.imagen} alt={producto.nombre} />
+                    <img src={imagenPrincipal} alt={producto.nombre} />
                 </section>
 
                 <div className="detalle-info">
@@ -50,6 +74,7 @@ const PageCard = () => {
                             {producto.etiqueta}
                         </span>
                     )}
+
                     <h1>{producto.nombre}</h1>
                     <p className="detalle-descripcion">{producto.descripcion}</p>
 
@@ -60,11 +85,11 @@ const PageCard = () => {
                         <span className="precio-actual">{formatPrecio(producto.precio)}</span>
                     </div>
 
-                    {producto.tallas?.length > 0 && (
+                    {tallas.length > 0 && (
                         <div className="detalle-tallas">
                             <p>Selecciona tu talla:</p>
                             <div className="card-tallas">
-                                {producto.tallas.map((talla) => (
+                                {tallas.map((talla) => (
                                     <span
                                         key={talla}
                                         className={tallaActiva === talla ? "talla-activa" : ""}
@@ -84,6 +109,34 @@ const PageCard = () => {
                     <Link to="/" className="detalle-volver">← Seguir comprando</Link>
                 </div>
             </div>
+
+            {/* Productos relacionados */}
+            {producto.relacionados?.length > 0 && (
+                <section className="relacionados-seccion">
+                    <h3>✨ Completa tu conjunto</h3>
+                    <div className="relacionados-grid">
+                        {producto.relacionados.map((rel) => (
+                            <Link
+                                to={`/producto/${rel.id}`}
+                                key={rel.id}
+                                className="relacionado-card"
+                            >
+                                <div className="relacionado-img">
+                                    <img
+                                        src={rel.imagen || ""}
+                                        alt={rel.nombre}
+                                        onError={(e) => { e.target.style.opacity = "0.3"; }}
+                                    />
+                                </div>
+                                <div className="relacionado-info">
+                                    <strong>{rel.nombre}</strong>
+                                    <span>{formatPrecio(rel.precio)}</span>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </section>
+            )}
         </>
     );
 };
