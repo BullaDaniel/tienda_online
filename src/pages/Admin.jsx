@@ -132,7 +132,7 @@ const Admin = () => {
         setProductoSeleccionado(producto);
         setCargandoRel(true);
         try {
-            const res = await fetch(`http://localhost:3001/api/productos/${producto.id}/relacionados`);
+            const res = await fetch(`https://tiendaonline-production-ca3b.up.railway.app/api/productos/${producto.id}/relacionados`);
             const data = await res.json();
             setRelacionados(data);
         } catch {
@@ -145,7 +145,7 @@ const Admin = () => {
     const agregarRelacionado = async () => {
         if (!relacionadoId || relacionadoId == productoSeleccionado.id) return;
         try {
-            await fetch(`http://localhost:3001/api/productos/${productoSeleccionado.id}/relacionados`, {
+            await fetch(`https://tiendaonline-production-ca3b.up.railway.app/api/productos/${productoSeleccionado.id}/relacionados`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ producto_relacionado_id: Number(relacionadoId) }),
@@ -159,7 +159,7 @@ const Admin = () => {
 
     const eliminarRelacionado = async (relId) => {
         try {
-            await fetch(`http://localhost:3001/api/productos/${productoSeleccionado.id}/relacionados/${relId}`, {
+            await fetch(`https://tiendaonline-production-ca3b.up.railway.app/api/productos/${productoSeleccionado.id}/relacionados/${relId}`, {
                 method: "DELETE",
             });
             abrirRelacionados(productoSeleccionado);

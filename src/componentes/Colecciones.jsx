@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
  
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API = import.meta.env.VITE_API_URL || "https://tiendaonline-production-ca3b.up.railway.app";
  
 const Colecciones = () => {
     const [colecciones, setColecciones] = useState([]);

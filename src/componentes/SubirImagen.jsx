@@ -3,7 +3,7 @@
 // por un input real de archivo con preview.
 import { useState } from "react";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API = import.meta.env.VITE_API_URL || "https://tiendaonline-production-ca3b.up.railway.app";
 
 const SubirImagen = ({ value, onChange, label = "Imagen *" }) => {
     const [subiendo, setSubiendo] = useState(false);
