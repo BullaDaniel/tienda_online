@@ -1,7 +1,7 @@
 import WhatsappBoton from "./componentes/WhatsappBoton";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
-import { usePetalos } from "./context/PetalosContext";
+import { usePetalos } from "./context/Petaloscontext";
 import Petalo from "./componentes/Petalo";
 import Home from "./pages/Home";
 import PageCard from "./pages/PageCard";
