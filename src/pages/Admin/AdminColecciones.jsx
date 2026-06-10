@@ -1,14 +1,8 @@
 // src/pages/admin/AdminColecciones.jsx
-// ─────────────────────────────────────────────
-// Panel Admin de Colecciones.
-// Vista 1: Lista de colecciones (tabla)
-// Vista 2: Formulario crear/editar colección
-// Vista 3: Gestor de cards (CRUD anidado)
-// ─────────────────────────────────────────────
 import { useState } from "react";
 import { useColecciones } from "../../context/ColeccionesContext";
+import SubirImagen from "../../componentes/SubirImagen";
 
-// ── Utilidad: genera slug desde título ────────
 const generarSlug = (texto) =>
     texto.toLowerCase()
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -34,7 +28,6 @@ const FormColeccion = ({ coleccionInicial, onGuardar, onCancelar }) => {
         setForm((p) => ({
             ...p,
             [name]: value,
-            // Auto-slug solo si no está en edición y el campo es titulo
             ...(name === "titulo" && !coleccionInicial ? { slug: generarSlug(value) } : {}),
         }));
     };
@@ -82,17 +75,16 @@ const FormColeccion = ({ coleccionInicial, onGuardar, onCancelar }) => {
                     placeholder="Describe la colección..." rows={3} disabled={cargando} />
             </div>
 
-            <div className="admin-campo">
-                <label>URL de imagen de portada *</label>
-                <input name="imagen_portada" value={form.imagen_portada} onChange={handleChange}
-                    placeholder="https://... o /imagenes/portada.jpg" disabled={cargando} />
-                {errores.imagen_portada && <span className="admin-campo-error">{errores.imagen_portada}</span>}
-                {form.imagen_portada && (
-                    <img src={form.imagen_portada} alt="preview"
-                        className="admin-img-preview"
-                        onError={(e) => { e.target.style.display = "none"; }} />
-                )}
-            </div>
+            {/* Imagen de portada con subida a Cloudinary */}
+            <SubirImagen
+                label="Imagen de portada *"
+                value={form.imagen_portada}
+                onChange={(url) => {
+                    setErrores((p) => ({ ...p, imagen_portada: "" }));
+                    setForm((p) => ({ ...p, imagen_portada: url }));
+                }}
+            />
+            {errores.imagen_portada && <span className="admin-campo-error">{errores.imagen_portada}</span>}
 
             <div className="admin-fila">
                 <button type="submit" className="admin-btn-submit" disabled={cargando}>
@@ -112,12 +104,12 @@ const FormColeccion = ({ coleccionInicial, onGuardar, onCancelar }) => {
 const cardVacia = { titulo: "", descripcion_corta: "", imagen: "", enlace: "", precio: "", fecha: "", tags: "", etiqueta: "" };
 
 const GestorCards = ({ coleccion, onVolver }) => {
-    const { crearCard, editarCard, eliminarCard, cargarCards } = useColecciones();
-    const [form, setForm]           = useState(cardVacia);
+    const { crearCard, editarCard, eliminarCard } = useColecciones();
+    const [form, setForm]             = useState(cardVacia);
     const [editandoId, setEditandoId] = useState(null);
-    const [errores, setErrores]     = useState({});
-    const [cargando, setCargando]   = useState(false);
-    const [exito, setExito]         = useState("");
+    const [errores, setErrores]       = useState({});
+    const [cargando, setCargando]     = useState(false);
+    const [exito, setExito]           = useState("");
 
     const cards = coleccion.cards || [];
 
@@ -129,14 +121,14 @@ const GestorCards = ({ coleccion, onVolver }) => {
     const iniciarEdicion = (card) => {
         setEditandoId(card.id);
         setForm({
-            titulo:           card.titulo           || "",
-            descripcion_corta:card.descripcion_corta|| "",
-            imagen:           card.imagen           || "",
-            enlace:           card.enlace           || "",
-            precio:           card.precio           || "",
-            fecha:            card.fecha?.slice(0, 10) || "",
-            tags:             card.tags             || "",
-            etiqueta:         card.etiqueta         || "",
+            titulo:            card.titulo            || "",
+            descripcion_corta: card.descripcion_corta || "",
+            imagen:            card.imagen            || "",
+            enlace:            card.enlace            || "",
+            precio:            card.precio            || "",
+            fecha:             card.fecha?.slice(0, 10) || "",
+            tags:              card.tags              || "",
+            etiqueta:          card.etiqueta          || "",
         });
         setErrores({});
     };
@@ -207,15 +199,15 @@ const GestorCards = ({ coleccion, onVolver }) => {
                                 placeholder="Una línea que describe esta pieza..." />
                         </div>
 
-                        <div className="admin-campo">
-                            <label>URL de imagen</label>
-                            <input name="imagen" value={form.imagen} onChange={handleChange}
-                                placeholder="https://... o /imagenes/pieza.jpg" disabled={cargando} />
-                            {form.imagen && (
-                                <img src={form.imagen} alt="preview" className="admin-img-preview"
-                                    onError={(e) => { e.target.style.display = "none"; }} />
-                            )}
-                        </div>
+                        {/* Imagen de card con subida a Cloudinary */}
+                        <SubirImagen
+                            label="Imagen de la card"
+                            value={form.imagen}
+                            onChange={(url) => {
+                                setErrores((p) => ({ ...p, imagen: "" }));
+                                setForm((p) => ({ ...p, imagen: url }));
+                            }}
+                        />
 
                         <div className="admin-campo">
                             <label>Enlace <small>(opcional)</small></label>
@@ -223,7 +215,6 @@ const GestorCards = ({ coleccion, onVolver }) => {
                                 placeholder="https://..." disabled={cargando} />
                         </div>
 
-                        {/* Campos personalizados */}
                         <p className="admin-separador">Campos personalizados opcionales</p>
 
                         <div className="admin-fila">
@@ -307,10 +298,9 @@ const GestorCards = ({ coleccion, onVolver }) => {
 const AdminColecciones = () => {
     const { colecciones, cargando, crearColeccion, editarColeccion, eliminarColeccion, cargarCards } = useColecciones();
 
-    // "lista" | "crear" | "editar" | "cards"
-    const [vista, setVista]         = useState("lista");
+    const [vista, setVista]               = useState("lista");
     const [seleccionada, setSeleccionada] = useState(null);
-    const [exito, setExito]         = useState("");
+    const [exito, setExito]               = useState("");
 
     const mostrarExito = (msg) => { setExito(msg); setTimeout(() => setExito(""), 3500); };
 
@@ -339,7 +329,6 @@ const AdminColecciones = () => {
         setVista("cards");
     };
 
-    // ── Vista: gestionar cards ─────────────────
     if (vista === "cards" && seleccionada) {
         const colActualizada = colecciones.find((c) => c.id === seleccionada.id) || seleccionada;
         return (
@@ -350,7 +339,6 @@ const AdminColecciones = () => {
         );
     }
 
-    // ── Vista: crear / editar colección ────────
     if (vista === "crear" || vista === "editar") {
         return (
             <div>
@@ -371,7 +359,6 @@ const AdminColecciones = () => {
         );
     }
 
-    // ── Vista: lista ───────────────────────────
     return (
         <div>
             <div className="admin-seccion-header">

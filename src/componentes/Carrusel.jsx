@@ -1,6 +1,5 @@
 // src/componentes/Carrusel.jsx
 import { CarruselList } from "../data/carruselList";
-import Petalo from "./Petalo";
 
 const CarruselInterior = ({ interior }) => (
     <div className="carrusel_interior">
@@ -18,9 +17,8 @@ const CarruselInterior = ({ interior }) => (
     </div>
 );
 
-const Carrusel = ({ petalosActivos }) => (
+const Carrusel = () => (
     <div className="carrusel">
-        {petalosActivos && <Petalo />}  
         <ul>
             {CarruselList.map((item) => (
                 <CarruselInterior key={item.id} interior={item} />
