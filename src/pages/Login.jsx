@@ -20,40 +20,41 @@ const Login = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!form.email.trim() || !form.password.trim()) {
-            setError("Completa todos los campos.");
+    e.preventDefault();
+    if (!form.email.trim() || !form.password.trim()) {
+        setError("Completa todos los campos.");
+        return;
+    }
+
+    setCargando(true);
+    try {
+        const res = await fetch("http://localhost:3001/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: form.email, password: form.password }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            setError(data.error || "Email o contraseña incorrectos.");
             return;
         }
 
-        setCargando(true);
-        try {
-            const res = await fetch("http://localhost:3001/api/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: form.email, password: form.password }),
-            });
+        login(data);
 
-            const data = await res.json();
-
-            if (!res.ok) {
-                setError(data.error || "Email o contraseña incorrectos.");
-                return;
-            }
-
-            if (data.rol !== "admin") {
-                setError("No tienes permisos de administrador.");
-                return;
-            }
-
-            login(data);
+        // Redirigir según rol
+        if (data.rol === "admin") {
             navigate("/admin");
-        } catch {
-            setError("No se pudo conectar con el servidor.");
-        } finally {
-            setCargando(false);
+        } else {
+            navigate("/");
         }
-    };
+    } catch {
+        setError("No se pudo conectar con el servidor.");
+    } finally {
+        setCargando(false);
+    }
+};
 
     return (
         <div className="login-bg">
@@ -107,6 +108,12 @@ const Login = () => {
                     </button>
                 </form>
 
+                <p style={{ marginTop: "1rem", fontSize: "0.85rem", color: "#888" }}>
+                     ¿No tienes cuenta?{" "}
+                    <Link to="/registro" style={{ color: "#FF7EB3", fontWeight: 600 }}>
+                      Regístrate
+                     </Link>
+                </p>
                 <Link to="/" className="login-volver">← Volver a la tienda</Link>
             </div>
 

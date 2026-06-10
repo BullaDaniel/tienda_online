@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Admin from "./pages/Admin";
 import RutaProtegida from "./componentes/RutaProtegida";
 import Ayuda from "./pages/Ayuda";
+import Registro from "./pages/Registro";
 
 function App() {
     return (
@@ -16,6 +17,7 @@ function App() {
             <Route path="/"             element={<Home />} />
             <Route path="/producto/:id" element={<PageCard />} />
             <Route path="/login"        element={<Login />} />
+            <Route path="/registro" element={<Registro />} />
             <Route
                 path="/admin"
                 element={

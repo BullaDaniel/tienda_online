@@ -217,6 +217,109 @@ app.delete('/api/productos/:id/relacionados/:relacionadoId', (req, res) => {
   );
 });
 
+// ── REGISTRO CLIENTE ────────────────────────────────
+app.post('/api/registro', async (req, res) => {
+  const { nombre, email, password } = req.body;
+  DB.query('SELECT id FROM usuarios WHERE email = ?', [email], async (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length > 0) return res.status(400).json({ error: 'Email ya registrado' });
+    const hash = await bcrypt.hash(password, 10);
+    DB.query(
+      'INSERT INTO usuarios (nombre, email, password, rol) VALUES (?, ?, ?, "cliente")',
+      [nombre, email, hash],
+      (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        const token = jwt.sign({ id: result.insertId, rol: 'cliente' }, SECRET_KEY, { expiresIn: '8h' });
+        res.status(201).json({ token, rol: 'cliente', nombre });
+      }
+    );
+  });
+});
+
+// ── RESEÑAS ─────────────────────────────────────────
+
+// Obtener reseñas de un producto
+app.get('/api/productos/:id/resenas', (req, res) => {
+  const query = `
+    SELECT r.id, r.comentario, r.calificacion, r.creado_en,
+           u.nombre AS autor
+    FROM resenas r
+    JOIN usuarios u ON r.usuario_id = u.id
+    WHERE r.producto_id = ?
+    ORDER BY r.creado_en DESC
+  `;
+  DB.query(query, [req.params.id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+// Crear reseña (requiere token)
+app.post('/api/productos/:id/resenas', (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ error: 'No autorizado' });
+
+  const token = authHeader.split(' ')[1];
+  let usuario;
+  try {
+    usuario = jwt.verify(token, SECRET_KEY);
+  } catch {
+    return res.status(401).json({ error: 'Token inválido' });
+  }
+
+  const { comentario, calificacion } = req.body;
+  if (!comentario || !calificacion) return res.status(400).json({ error: 'Faltan datos' });
+
+  // Verificar que no haya reseñado antes
+  DB.query(
+    'SELECT id FROM resenas WHERE producto_id = ? AND usuario_id = ?',
+    [req.params.id, usuario.id],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (results.length > 0) return res.status(400).json({ error: 'Ya dejaste una reseña para este producto' });
+
+      DB.query(
+        'INSERT INTO resenas (producto_id, usuario_id, comentario, calificacion) VALUES (?, ?, ?, ?)',
+        [req.params.id, usuario.id, comentario, calificacion],
+        (err, result) => {
+          if (err) return res.status(500).json({ error: err.message });
+          res.status(201).json({ id: result.insertId, mensaje: 'Reseña publicada' });
+        }
+      );
+    }
+  );
+});
+
+// Eliminar reseña (solo el autor o admin)
+app.delete('/api/resenas/:id', (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ error: 'No autorizado' });
+
+  const token = authHeader.split(' ')[1];
+  let usuario;
+  try {
+    usuario = jwt.verify(token, SECRET_KEY);
+  } catch {
+    return res.status(401).json({ error: 'Token inválido' });
+  }
+
+  DB.query('SELECT * FROM resenas WHERE id = ?', [req.params.id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length === 0) return res.status(404).json({ error: 'Reseña no encontrada' });
+
+    const resena = results[0];
+    if (resena.usuario_id !== usuario.id && usuario.rol !== 'admin') {
+      return res.status(403).json({ error: 'Sin permiso' });
+    }
+
+    DB.query('DELETE FROM resenas WHERE id = ?', [req.params.id], (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ mensaje: 'Reseña eliminada' });
+    });
+  });
+});
+
+
 // ── SERVIDOR ───────────────────────────────────────
 
 app.listen(port, () => {

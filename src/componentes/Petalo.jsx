@@ -1,15 +1,22 @@
+import { useMemo } from "react";
 
 const Petalo = () => {
-    const petaloArray = Array.from({ length: 7 });
+    const petaloArray = useMemo(() =>
+        Array.from({ length: 7 }, () => ({
+            left: `${Math.random() * 100}vw`,
+            duration: `${Math.random() * 6 + 4}s`,
+        })),
+    []);
+
     return (
         <>
-            {petaloArray.map((_, index) => (
+            {petaloArray.map((estilo, index) => (
                 <div
                     key={index}
                     className="petalo"
                     style={{
-                        left: `${Math.random() * 100}vw`,
-                        animationDuration: `${Math.random() * 6 + 4}s`,
+                        left: estilo.left,
+                        animationDuration: estilo.duration,
                     }}
                 />
             ))}
