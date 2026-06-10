@@ -40,17 +40,21 @@ app.use(cors({
 app.use(express.json());
 
 // ── Base de datos ──────────────────────────────────
-const DB = mysql.createConnection({
+const DB = mysql.createPool({
     host:     process.env.DB_HOST,
     port:     process.env.DB_PORT,
     user:     process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit:    10,
+    queueLimit:         0,
 });
 
-DB.connect((err) => {
+DB.getConnection((err, connection) => {
     if (err) { console.error('Error BD:', err); return; }
     console.log('Conectado a la base de datos');
+    connection.release();
 });
 
 // ── PRODUCTOS ──────────────────────────────────────

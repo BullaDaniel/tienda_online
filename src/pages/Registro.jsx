@@ -34,7 +34,7 @@ const Registro = () => {
 
         setCargando(true);
         try {
-            const res = await fetch("http://localhost:3001/api/registro", {
+            const res = await fetch("https://tiendaonline-production-ca3b.up.railway.app/api/registro", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

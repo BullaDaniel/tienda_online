@@ -10,7 +10,7 @@ export const ProductosProvider = ({ children }) => {
 
     // Cargar productos desde el backend al montar
     useEffect(() => {
-        fetch("http://localhost:3001/api/productos")
+        fetch("https://tiendaonline-production-ca3b.up.railway.app/api/productos")
             .then((res) => res.json())
             .then((data) => {
                 setProductos(data);
@@ -23,7 +23,7 @@ export const ProductosProvider = ({ children }) => {
     }, []);
 
     const agregarProducto = (nuevoProducto) => {
-        return fetch("http://localhost:3001/api/productos", {
+        return fetch("https://tiendaonline-production-ca3b.up.railway.app/api/productos", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(nuevoProducto),
@@ -36,7 +36,7 @@ export const ProductosProvider = ({ children }) => {
     };
 
     const editarProducto = (id, datosActualizados) => {
-        return fetch(`http://localhost:3001/api/productos/${id}`, {
+        return fetch(`https://tiendaonline-production-ca3b.up.railway.app/api/productos/${id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(datosActualizados),
@@ -50,7 +50,7 @@ export const ProductosProvider = ({ children }) => {
     };
 
     const eliminarProducto = (id) => {
-        return fetch(`http://localhost:3001/api/productos/${id}`, {
+        return fetch(`https://tiendaonline-production-ca3b.up.railway.app/api/productos/${id}`, {
             method: "DELETE",
         })
             .then((res) => res.json())

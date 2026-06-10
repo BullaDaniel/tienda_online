@@ -39,13 +39,13 @@ const PageCard = () => {
     useEffect(() => {
         setCargando(true);
         setTallaActiva(null);
-        fetch(`http://localhost:3001/api/productos/${id}`)
+        fetch(`https://tiendaonline-production-ca3b.up.railway.app/api/productos/${id}`)
             .then((res) => res.json())
             .then((data) => { setProducto(data); setCargando(false); })
             .catch(() => setCargando(false));
 
         // Cargar reseñas
-        fetch(`http://localhost:3001/api/productos/${id}/resenas`)
+        fetch(`https://tiendaonline-production-ca3b.up.railway.app/api/productos/${id}/resenas`)
             .then((res) => res.json())
             .then((data) => setResenas(Array.isArray(data) ? data : []))
             .catch(() => setResenas([]));
@@ -64,7 +64,7 @@ const PageCard = () => {
 
         setEnviando(true);
         try {
-            const res = await fetch(`http://localhost:3001/api/productos/${id}/resenas`, {
+            const res = await fetch(`https://tiendaonline-production-ca3b.up.railway.app/api/productos/${id}/resenas`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -76,7 +76,7 @@ const PageCard = () => {
             if (!res.ok) { setErrorResena(data.error); return; }
 
             // Recargar reseñas
-            const nuevas = await fetch(`http://localhost:3001/api/productos/${id}/resenas`).then(r => r.json());
+            const nuevas = await fetch(`https://tiendaonline-production-ca3b.up.railway.app/api/productos/${id}/resenas`).then(r => r.json());
             setResenas(nuevas);
             setFormResena({ comentario: "", calificacion: 0 });
             setExitoResena("✅ Reseña publicada. ¡Gracias!");
@@ -91,7 +91,7 @@ const PageCard = () => {
     const handleEliminarResena = async (resenaId) => {
         if (!window.confirm("¿Eliminar esta reseña?")) return;
         try {
-            await fetch(`http://localhost:3001/api/resenas/${resenaId}`, {
+            await fetch(`https://tiendaonline-production-ca3b.up.railway.app/api/resenas/${resenaId}`, {
                 method: "DELETE",
                 headers: { "Authorization": `Bearer ${usuario.token}` },
             });
