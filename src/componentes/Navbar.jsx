@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { usePetalos } from "../context/PetalosContext";
+import { usePetalos } from "../context/Petaloscontext";
 
 const Navbar = () => {
     const [menuAbierto, setMenuAbierto]     = useState(false);
