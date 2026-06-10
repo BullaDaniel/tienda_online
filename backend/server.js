@@ -6,7 +6,7 @@ const bcrypt  = require('bcrypt');
 const jwt     = require('jsonwebtoken');
 
 const app        = express();
-const port       = 3001;
+const port       = process.env.PORT || 3001;
 const SECRET_KEY = process.env.SECRET_KEY;
 
 app.use(cors());
